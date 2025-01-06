@@ -85,6 +85,9 @@ fi
 ```
 Between this message and the fairly noisy output of `taverna` the error can be quickly found.
 
+## Building
+The resultify library is not in maven central, yet, this project cannot be built until that is resolved.
+
 ## Notes
 Unless otherwise stated all truststores in this project use the password "changeit". None of
 these truststores are used for anything other than testing.
