@@ -118,109 +118,127 @@ public class Entrypoint {
         System.out.printf("loaded %d total certificates\n", certs.size());
 
         // stop here if no domains were added (can't simplify, maybe in the future we want to allow output)
-        if (domains.isEmpty()) {
+        if (domains.isEmpty() && !optGlobal.isNoDomains()) {
             System.err.printf("No domains to verify trust against, exit code %d\n", Codes.NO_DOMAINS);
             return Codes.NO_DOMAINS;
         }
 
-        final Validator validator = new Validator();
-        final Result<ValidationStatus> validationStatusResult = validator.validate(optGlobal, domains, certs);
-        if(validationStatusResult.isError()) {
-            return Codes.GENERAL_ERROR;
-        }
-        ValidationStatus validationStatus = validationStatusResult.get();
-
+        // for simplicity's sake the trust is finalized after loading
+        // and will be further refined if domain checks are enabled.
         final Set<Cert> finalizedTrust = new HashSet<>(certs);
-        if (optGlobal.isComplete() && !optGlobal.isSimplify()) {
-            finalizedTrust.addAll(validationStatus.getMissingCerts());
-        }
-        if (optGlobal.isSimplify()) {
-            finalizedTrust.clear();
-            finalizedTrust.addAll(validationStatus.getUsedCerts());
-            if (optGlobal.isComplete()) {
+
+        // if we are acknowledging that there are no domains
+        // being provided then we can skip domain verification
+        // and go straight to output for cert/trust store management.
+        // this implies no simplification or trust completion will
+        // be performed.
+        int validationResultCode = 0;
+        if (!optGlobal.isNoDomains()) {
+            final Validator validator = new Validator();
+            final Result<ValidationStatus> validationStatusResult = validator.validate(optGlobal, domains, certs);
+            if (validationStatusResult.isError()) {
+                return Codes.GENERAL_ERROR;
+            }
+            ValidationStatus validationStatus = validationStatusResult.get();
+
+            if (optGlobal.isComplete() && !optGlobal.isSimplify()) {
                 finalizedTrust.addAll(validationStatus.getMissingCerts());
             }
-            // show finalized trust
-            if (finalizedTrust.isEmpty()) {
-                System.out.println("no trusted certificates remain after simplification");
-            } else {
-                System.out.printf("simplified trust (%d entries):\n", finalizedTrust.size());
+            if (optGlobal.isSimplify()) {
+                finalizedTrust.clear();
+                finalizedTrust.addAll(validationStatus.getUsedCerts());
+                if (optGlobal.isComplete()) {
+                    finalizedTrust.addAll(validationStatus.getMissingCerts());
+                }
+                // show finalized trust
+                if (finalizedTrust.isEmpty()) {
+                    System.out.println("no trusted certificates remain after simplification");
+                } else {
+                    System.out.printf("simplified trust (%d entries):\n", finalizedTrust.size());
+                    finalizedTrust.forEach(cert -> {
+                        System.out.printf("\t%s\n", cert);
+                    });
+                }
+            }
+
+            // set return code
+            validationResultCode = validationStatus.getReturnCode();
+        }
+
+        // only output if all the domains are valid
+        if (validationResultCode == Codes.OK) {
+            if (optGlobal.getOutstore() != null) {
+                final Path outStorePath = optGlobal.getOutstore();
+                if (Files.isDirectory(outStorePath)) {
+                    System.out.printf("the output store path ('%s') is a directory\n", outStorePath);
+                } else {
+                    final String outStorePass = optGlobal.getOutStorePass();
+                    if (outStorePass == null || outStorePass.isEmpty()) {
+                        System.out.println("the output store pass is empty, skipping");
+                    } else {
+                        if (OptGlobal.DEFAULT_STORE_PASSWORD.equals(outStorePass)) {
+                            System.out.println("WARNING: the output store pass is the default password, this is insecure and it should be changed");
+                        }
+                        final KeyStore finalKeyStore = Combiner.combineTrust(finalizedTrust);
+                        try (OutputStream os = Files.newOutputStream(outStorePath)) {
+                            finalKeyStore.store(os, outStorePass.toCharArray());
+                            System.out.printf("wrote trust store to '%s'\n", outStorePath);
+                        } catch (Exception ex) {
+                            System.err.printf("failed to create trust store at '%s': %s\n", outStorePath, ex.getMessage());
+                        }
+                    }
+                }
+            }
+
+            if (optGlobal.getOutdir() != null) {
+                final Path outDirPath = optGlobal.getOutdir();
+                if (Files.isRegularFile(outDirPath)) {
+                    System.out.printf("the output dir ('%s') is not a directory\n", outDirPath);
+                } else if (!Files.exists(outDirPath)) {
+                    try {
+                        Files.createDirectories(outDirPath);
+                    } catch (Exception ex) {
+                        // what to even do here
+                    }
+                }
+                System.out.printf("writing %d certificates to %s\n", finalizedTrust.size(), outDirPath);
                 finalizedTrust.forEach(cert -> {
-                    System.out.printf("\t%s\n", cert);
+                    final Path individualCertPath = optGlobal.getOutdir().resolve(cert.getSubject() + ".pem");
+                    try (final OutputStream fileOutputStream = Files.newOutputStream(individualCertPath)) {
+                        fileOutputStream.write(cert.getPemEncoded().getBytes(StandardCharsets.UTF_8));
+                        System.out.printf("\twrote %s to '%s'\n", cert, individualCertPath);
+                    } catch (Exception ex) {
+                        System.err.printf("\tcould not right certificate %s to %s\n", cert.getSubject(), individualCertPath);
+                    }
                 });
             }
-        }
 
-        if (optGlobal.getOutstore() != null) {
-            final Path outStorePath = optGlobal.getOutstore();
-            if (Files.isDirectory(outStorePath)) {
-               System.out.printf("the output store path ('%s') is a directory\n", outStorePath);
-            } else {
-                final String outStorePass = optGlobal.getStorePass();
-                if (outStorePass == null || outStorePass.isEmpty()) {
-                    System.out.println("the output store pass is empty, skipping");
+            if (optGlobal.getOutfile() != null) {
+                final Path outFilePath = optGlobal.getOutfile();
+                if (Files.isDirectory(outFilePath)) {
+                    System.err.printf("the output store path ('%s') is a directory\n", outFilePath);
                 } else {
-                    final KeyStore finalKeyStore = Combiner.combineTrust(finalizedTrust);
-                    try (OutputStream os = Files.newOutputStream(outStorePath)) {
-                        finalKeyStore.store(os, outStorePass.toCharArray());
-                        System.out.printf("wrote trust store to '%s'\n", outStorePath);
-                    } catch (Exception ex) {
-                        System.err.printf("failed to create trust store at '%s': %s\n", outStorePath, ex.getMessage());
-                    }
-                }
-            }
-        }
-
-        if (optGlobal.getOutdir() != null) {
-            final Path outDirPath = optGlobal.getOutdir();
-            if (Files.isRegularFile(outDirPath)) {
-                System.out.printf("the output dir ('%s') is not a directory\n", outDirPath);
-            } else if (!Files.exists(outDirPath)) {
-                try {
-                    Files.createDirectories(outDirPath);
-                } catch (Exception ex) {
-                    // what to even do here
-                }
-            }
-            System.out.printf("writing %d certificates to %s\n", finalizedTrust.size(), outDirPath);
-            finalizedTrust.forEach(cert -> {
-                final Path individualCertPath = optGlobal.getOutdir().resolve(cert.getSubject() + ".pem");
-                try (final OutputStream fileOutputStream = Files.newOutputStream(individualCertPath)) {
-                    fileOutputStream.write(cert.getPemEncoded().getBytes(StandardCharsets.UTF_8));
-                    System.out.printf("\twrote %s to '%s'\n", cert, individualCertPath);
-                } catch (Exception ex) {
-                    System.err.printf("\tcould not right certificate %s to %s\n", cert.getSubject(), individualCertPath);
-                }
-            });
-        }
-
-        if (optGlobal.getOutfile() != null) {
-            final Path outFilePath = optGlobal.getOutfile();
-            if (Files.isDirectory(outFilePath)) {
-                System.err.printf("the output store path ('%s') is a directory\n", outFilePath);
-            } else {
-                try (OutputStream os = Files.newOutputStream(outFilePath)) {
-                    boolean first = true;
-                    for(final Cert cert : finalizedTrust) {
-                        if (!first) {
-                            os.write('\n');
+                    try (OutputStream os = Files.newOutputStream(outFilePath)) {
+                        boolean first = true;
+                        for (final Cert cert : finalizedTrust) {
+                            if (!first) {
+                                os.write('\n');
+                            }
+                            os.write(cert.getPemEncoded().getBytes(StandardCharsets.UTF_8));
+                            first = false;
                         }
-                        os.write(cert.getPemEncoded().getBytes(StandardCharsets.UTF_8));
-                        first = false;
+                        System.out.printf("wrote %d certificates to file '%s'\n", finalizedTrust.size(), outFilePath);
+                    } catch (Exception ex) {
+                        System.err.printf("failed to write certificates to file '%s': %s\n", outFilePath, ex.getMessage());
                     }
-                    System.out.printf("wrote %d certificates to file '%s'\n", finalizedTrust.size(), outFilePath);
-                } catch (Exception ex) {
-                    System.err.printf("failed to write certificates to file '%s': %s\n", outFilePath, ex.getMessage());
                 }
             }
+        } else if (optGlobal.getOutdir() != null || optGlobal.getOutfile() != null || optGlobal.getOutstore() != null) {
+            System.err.println("there was an error during domain validation, no certificate output was written");
         }
 
-        if (validationStatus.getReturnCode() != 0) {
-            return validationStatus.getReturnCode();
-        }
-
-        // nothing went wrong, return 0
-        return 0;
+        // return result code
+        return validationResultCode;
     }
 
 }

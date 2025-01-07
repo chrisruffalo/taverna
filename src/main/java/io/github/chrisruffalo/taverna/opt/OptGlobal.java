@@ -9,6 +9,8 @@ import java.util.List;
 
 public class OptGlobal {
 
+    public static final String DEFAULT_STORE_PASSWORD = "changeit";
+
     @Parameter(names = {"-d", "--domain"}, arity = 1, description = "A domain that the application needs to trust. A single domain can be a fqdn or fqdn:port. If no port is provided 443 is assumed. (This option may be specified multiple times.)")
     private List<String> domains = new ArrayList<>(0);
 
@@ -18,17 +20,17 @@ public class OptGlobal {
     @Parameter(names = {"-s", "--source"}, arity = 1, description = "A source of trust material. Can be a directory, a file, or a Java trust store. If the source is a Java trust store with a password you may provide it by appending \":password\" to the source or by using the \"--storepass\" option. (This option may be specified multiple times.)")
     private List<String> source = new ArrayList<>(0);
 
-    @Parameter(names = {"-p", "--storepass"}, defaultValueDescription = "The default value is 'changeit'.", description = "The default password to use for all Java trust stores that are specified without providing a password.")
-    private String storePass = "changeit";
+    @Parameter(names = {"-p", "--storepass"}, defaultValueDescription = "The default value is '" + DEFAULT_STORE_PASSWORD + "'.", description = "The default password to use for all Java trust stores that are specified without providing a password.")
+    private String storePass = DEFAULT_STORE_PASSWORD;
 
     @Parameter(names = {"-o", "--outstore"}, description = "If specified the current trust profile will be written to the output keystore.")
     private Path outstore;
 
-    @Parameter(names = {"-T", "--outtype"}, defaultValueDescription = "The default value is 'PKCS12'.", description = "Specifies the format of the ouput keystore.")
+    @Parameter(names = {"-T", "--outstoretype"}, defaultValueDescription = "The default value is 'PKCS12'.", description = "Specifies the format of the output keystore.")
     private String outstoreType;
 
-    @Parameter(names = {"-P", "--outpass"}, defaultValueDescription = "The default value is 'changeit'.", description = "The password for the output keystore.")
-    private String outStorePass = "changeit";
+    @Parameter(names = {"-P", "--outstorepass"}, defaultValueDescription = "The default value is '" + DEFAULT_STORE_PASSWORD + "'.", description = "The password for the output keystore.")
+    private String outStorePass = DEFAULT_STORE_PASSWORD;
 
     @Parameter(names = {"-F", "--outfile"}, description = "If specified the current trust profile will be written to a single PEM encoded file.")
     private Path outfile;
@@ -45,8 +47,11 @@ public class OptGlobal {
     @Parameter(names = {"--completion-mode"}, description = "Specifies the mode to use when completion is requested. In `DIRECT` mode the domain certificate will be added to the trust, in `FIRST_SUBORDINATE` mode the first subordinate certificate from the domain will be added. In `MOST_TRUSTED` mode the deepest certificate in the chain will be trusted.", defaultValueDescription = "The default value is `FIRST_SUBORDINATE` which allows a narrower trust to be accepted.")
     private CompletionMode completionMode = CompletionMode.FIRST_SUBORDINATE;
 
-    @Parameter(names = {"--no-verify"}, description = "If this flag is set then the connection to verify a domain with the trust will not be made. (Skips the verify step after determining trust.)")
+    @Parameter(names = {"--no-verify"}, description = "If this flag is set then the connection to verify a domain after finding the appropriate trust will not be made. (Skips the verify step after determining trust.)")
     private boolean noVerify = false;
+
+    @Parameter(names = {"--no-domains"}, description = "If this flag is set then no domains will be checked. (Acknowledges the \"no domains\" error and continues to be able to output trust sources.)")
+    private boolean noDomains = false;
 
     public List<String> getDomains() {
         return domains;
@@ -150,5 +155,13 @@ public class OptGlobal {
 
     public void setCompletionMode(CompletionMode completionMode) {
         this.completionMode = completionMode;
+    }
+
+    public boolean isNoDomains() {
+        return noDomains;
+    }
+
+    public void setNoDomains(boolean noDomains) {
+        this.noDomains = noDomains;
     }
 }

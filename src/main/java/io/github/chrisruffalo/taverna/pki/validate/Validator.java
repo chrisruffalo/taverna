@@ -1,6 +1,7 @@
 package io.github.chrisruffalo.taverna.pki.validate;
 
 import io.github.chrisruffalo.resultify.Result;
+import io.github.chrisruffalo.taverna.error.Codes;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.opt.OptGlobal;
 import io.github.chrisruffalo.taverna.pki.combine.Combiner;
@@ -11,6 +12,8 @@ import javax.net.ssl.*;
 import java.security.KeyStore;
 import java.security.cert.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Class that encapsulates the logic of validating the loaded trust
@@ -30,14 +33,18 @@ public class Validator {
 
              // create thumbprint map
              final Map<String, Cert> certThumbprintMap = new HashMap<>();
-             final Map<String, Cert> certSubjectMap = new HashMap<>();
+             final Map<String, List<Cert>> certSubjectMap = new HashMap<>();
              trust.forEach(cert -> {
-                 certSubjectMap.put(cert.getSubject(), cert);
+                 // the subject map can contain multiple of the same subject and we need to try and
+                 // find/figure the right one
+                 certSubjectMap.computeIfAbsent(cert.getSubject(), key -> new LinkedList<>()).add(cert);
                  certThumbprintMap.put(cert.getThumbprint(), cert);
              });
 
              // for each domain, load
              final DomainLoader domainLoader = new DomainLoader();
+             final AtomicInteger updatedCode = new AtomicInteger(Codes.OK);
+
              domains.forEach(domain -> {
                  String domainName = domain.toLowerCase();
                  int domainPort = SSL_PORT;
@@ -56,6 +63,9 @@ public class Validator {
                  } else {
                      System.out.printf("\thostname not verified: [%s] against [%s]\n", domainName, String.join(", ", domainFirstCert.getAlternateNames()));
                  }
+
+                 final AtomicBoolean alreadyAdded = new AtomicBoolean(false);
+
                  fromDomain.forEach(domainCert -> {
                      boolean inStore = certThumbprintMap.containsKey(domainCert.getThumbprint());
 
@@ -63,16 +73,22 @@ public class Validator {
                      if (inStore) {
                          qualifiers.add("(in store)");
                          status.getUsedCerts().add(certThumbprintMap.get(domainCert.getThumbprint()));
+                         alreadyAdded.set(true);
                      }
                      if (domainCert.isSelfSigned()) {
                          qualifiers.add("(self-signed)");
                      }
 
                      // get the issuer, if it is in the map
-                     final Cert knownDomainIssuer = certSubjectMap.get(domainCert.getIssuer());
-                     final boolean issuerInTrust = knownDomainIssuer != null && domainCert.isIssuedBy(knownDomainIssuer);
+                     final List<Cert> knownDomainIssuers = certSubjectMap.computeIfAbsent(domainCert.getIssuer(), key -> List.of());
+                     final Cert knownDomainIssuer = knownDomainIssuers.stream()
+                             .filter(Objects::nonNull)
+                             .filter(domainCert::isIssuedBy)
+                             .findFirst()
+                             .orElse(null);
+                     final boolean issuerInTrust = knownDomainIssuer != null;
 
-                     System.out.printf("\t[serial=%s] %s [%s] [issuer=%s, %s] %s\n", domainCert.getSerialNumber(), domainCert.getSubject(), domainCert.getThumbprint(), domainCert.getIssuer(), issuerInTrust ? "trusted" : "not trusted", String.join(" ", qualifiers));
+                     System.out.printf("\t[serial=%s] %s [%s] [issuer=%s, %s, %s] %s\n", domainCert.getSerialNumber(), domainCert.getSubject(), domainCert.getThumbprint(), domainCert.getIssuer(), knownDomainIssuer != null ? "in trust" : "not in trust", issuerInTrust ? "trusted" : "not trusted", String.join(" ", qualifiers));
                  });
 
                  // determine if the trust package trusts the connection (offline)
@@ -80,6 +96,7 @@ public class Validator {
                  boolean trustedByManager = trustedByManagerResult.getOrFailsafe(false);
                  if (!trustedByManager) {
                      System.out.printf("\tnot trusted%s\n", trustedByManagerResult.isError() ? String.format(": %s", trustedByManagerResult.error().getMessage()) : "");
+                     updatedCode.set(Codes.UNVERIFIED);
                  } else {
                      System.out.println("\ttrusted");
                  }
@@ -90,10 +107,15 @@ public class Validator {
                  if (chainIsTrusted) {
                      final Cert trustedCert = trustedResult.get();
                      if (certSubjectMap.containsKey(trustedCert.getIssuer())) {
-                         final Cert issuer = certSubjectMap.get(trustedCert.getIssuer());
-                         if (trustedCert.isIssuedBy(issuer)) {
-                             System.out.printf("\tanchored by: %s\n", issuer);
-                             status.getUsedCerts().add(issuer);
+                         final List<Cert> potentialIssuers = certSubjectMap.get(trustedCert.getIssuer());
+                         for (final Cert issuer : potentialIssuers) {
+                             if (trustedCert.isIssuedBy(issuer)) {
+                                 System.out.printf("\tanchored by: %s\n", issuer);
+                                 if (!alreadyAdded.get()) {
+                                     status.getUsedCerts().add(issuer);
+                                 }
+                                 break;
+                             }
                          }
                      }
                  }
@@ -104,8 +126,10 @@ public class Validator {
                      if (confirmed.isPresent()) {
                          System.out.println("\tverified trusted connection");
                      } else if (confirmed.isError()) {
+                         updatedCode.set(Codes.UNVERIFIED);
                          System.out.printf("\ttrusted connection not verified: %s\n", confirmed.error().getMessage());
                      } else {
+                         updatedCode.set(Codes.UNVERIFIED);
                          System.out.println("\ttrusted connection not verified");
                      }
                  }
@@ -128,13 +152,22 @@ public class Validator {
                     if (!global.isNoVerify()) {
                         Result<Boolean> confirmed = validateDomainConnectionAgainstTrust(domainName, domainPort, List.of(toTrust));
                         if (confirmed.isPresent()) {
+                            updatedCode.set(Codes.OK);
                             System.out.println("\tconnection verified with updated trust");
                         } else if (confirmed.isError()) {
+                            updatedCode.set(Codes.UNVERIFIED);
                             System.out.printf("\tupdated trust not verified: %s\n", confirmed.error().getMessage());
                         } else {
+                            updatedCode.set(Codes.UNVERIFIED);
                             System.out.println("\tupdated trust not verified");
                         }
                     }
+                 }
+
+                 // update the status/output code if it has changed for the worse, first
+                 // bad code "wins"
+                 if (status.getReturnCode() == Codes.OK && updatedCode.get() != Codes.OK) {
+                     status.setReturnCode(updatedCode.get());
                  }
              });
 

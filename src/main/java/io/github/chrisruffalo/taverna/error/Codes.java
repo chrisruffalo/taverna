@@ -8,4 +8,5 @@ public class Codes {
 
     public static int NO_DOMAINS = 2;
 
+    public static int UNVERIFIED = 3;
 }
