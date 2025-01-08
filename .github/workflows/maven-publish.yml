@@ -134,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.update_release.outputs.upload_url }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
           asset_name: taverna-${{ github.event.release.tag_name }}-executable.jar
           asset_content_type: application/octet-stream
@@ -144,7 +144,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.update_release.outputs.upload_url }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
           asset_name: taverna-${{ github.event.release.tag_name }}-linux-amd64
           asset_content_type: application/octet-stream
@@ -154,7 +154,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.update_release.outputs.upload_url }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
           asset_name: taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
           asset_content_type: application/octet-stream
@@ -164,7 +164,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.update_release.outputs.upload_url }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-macos
           asset_name: taverna-${{ github.event.release.tag_name }}-macos
           asset_content_type: application/octet-stream
