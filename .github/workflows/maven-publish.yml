@@ -1,0 +1,105 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+name: Maven Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    - name: Cache local Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+#    - name: Install GPG Secret Key
+#      run: |
+#        cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+#        gpg --list-secret-keys --keyid-format LONG
+
+    - name: Set version
+      run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+
+    - name: Build with Maven
+      run: mvn -B -Drevision=${{ github.event.release.tag_name }} package
+
+    - name: 'Upload Executable JAR to Artifact Cache'
+      uses: actions/upload-artifact@v4
+      with:
+        name: taverna-${{ github.event.release.tag_name }}.jar
+        path: syndo/target/taverna-${{ github.event.release.tag_name }}-executable.jar
+        retention-days: 1
+
+  build_native:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # install GraalVM for native build
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # windows: install msbuild tools for native compile
+      - name: Add msbuild to PATH
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      # windows: ensure that dev tools are added to path
+      - name: Add toolkit to path
+        if: contains(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # ubuntu: install packages needed for graalvm native compile
+      - name: Install additional packages
+        if: contains(matrix.os, 'ubuntu')
+        run: sudo apt-get install -y zlib1g-dev
+
+      - name: Install native-image component
+        run: |
+          ${{ matrix.gu-binary }} install native-image
+
+      - uses: actions/checkout@v4
+
+      - name: Set version
+        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+
+      - name: Build with Maven
+        run: |
+          mvn -B --update-snapshots -DskipTests -Drevision=${{ github.event.release.tag_name }} -Pnative package
+          mv target/taverna target/syndo-${{ needs.metadata.outputs.pom-ver }}-${{ matrix.native-asset-suffix }}
+
+      - name: 'Upload Binary Executable'
+        uses: actions/upload-artifact@v2
+        with:
+          name: taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          path: target/taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          retention-days: 1

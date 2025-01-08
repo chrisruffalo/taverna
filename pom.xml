@@ -26,6 +26,8 @@
 
         <!-- plugin versions -->
         <version.surefire-plugin>3.5.2</version.surefire-plugin>
+        <version.native-maven-plugin>0.10.4</version.native-maven-plugin>
+
     </properties>
 
     <dependencies>
@@ -36,7 +38,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.chrisruffalo</groupId>
+            <groupId>io.github.chrisruffalo</groupId>
             <artifactId>resultify</artifactId>
             <version>${version.resultify}</version>
         </dependency>
@@ -73,5 +75,41 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- invoke graalvm build -->
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${version.native-maven-plugin}</version>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <buildArgs>
+                                        <buildArg>--enable-https</buildArg>
+                                    </buildArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
