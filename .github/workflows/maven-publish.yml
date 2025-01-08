@@ -60,7 +60,7 @@ jobs:
           - os: ubuntu-latest
             native-asset-suffix: linux-amd64
             target-suffix: ""
-          - os: windows-2016
+          - os: windows-latest
             native-asset-suffix: windows-amd64.exe
             target-suffix: .exe
           - os: macos-latest
