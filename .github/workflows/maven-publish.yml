@@ -136,8 +136,6 @@ jobs:
           path: artifacts/
 
       - name: "Upload Artifacts to Release"
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          artifactErrorsFailBuild: true
-          artifacts: artifacts/*/*
-          draft: true
+          files: artifacts/*/*
