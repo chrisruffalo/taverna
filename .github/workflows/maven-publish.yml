@@ -80,10 +80,6 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: sudo apt-get install -y zlib1g-dev
 
-      - name: Install native-image component
-        run: |
-          ${{ matrix.gu-binary }} install native-image
-
       - uses: actions/checkout@v4
 
       - name: Set version
