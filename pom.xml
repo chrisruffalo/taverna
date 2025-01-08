@@ -102,6 +102,7 @@
                                 <configuration>
                                     <buildArgs>
                                         <buildArg>--enable-https</buildArg>
+                                        <buildArg>--strict-image-heap</buildArg>
                                     </buildArgs>
                                 </configuration>
                             </execution>
