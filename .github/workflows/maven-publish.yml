@@ -97,11 +97,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set version
-        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+        run: mvn -B versions:set -DnewVersion="${{ github.event.release.tag_name }}"
 
       - name: Build with Maven
         run: |
-          mvn -B --update-snapshots -DskipTests -Drevision=${{ github.event.release.tag_name }} -Pnative package
+          mvn -B --update-snapshots -DskipTests -Drevision="${{ github.event.release.tag_name }}" -Pnative package
           mv target/taverna target/taverna-${{ needs.metadata.outputs.pom-ver }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
