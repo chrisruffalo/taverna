@@ -139,7 +139,7 @@ jobs:
         uses: softprops/action-gh-release@v2.2.1
         with:
           files: |
-            taverna-${{ github.event.release.tag_name }}-executable.jar
-            taverna-${{ github.event.release.tag_name }}-linux-amd64
-            taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
-            taverna-${{ github.event.release.tag_name }}-macos
+            artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
+            artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
+            artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
+            artifacts/taverna-${{ github.event.release.tag_name }}-macos
