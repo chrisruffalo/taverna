@@ -102,7 +102,7 @@ jobs:
       - name: Build with Maven
         run: |
           mvn -B --update-snapshots -DskipTests -Drevision="${{ github.event.release.tag_name }}" -Pnative package
-          mv target/taverna target/taverna-${{ needs.metadata.outputs.pom-ver }}-${{ matrix.native-asset-suffix }}
+          mv target/taverna${{ matrix.target-suffix }} target/taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
         uses: actions/upload-artifact@v4
