@@ -139,7 +139,7 @@ jobs:
         uses: softprops/action-gh-release@v2.2.1
         with:
           files: |
-            /home/runner/work/taverna/taverna/artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
-            /home/runner/work/taverna/taverna/artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
-            /home/runner/work/taverna/taverna/artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
-            /home/runner/work/taverna/taverna/artifacts/taverna-${{ github.event.release.tag_name }}-macos
+            taverna-${{ github.event.release.tag_name }}-executable.jar
+            taverna-${{ github.event.release.tag_name }}-linux-amd64
+            taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
+            taverna-${{ github.event.release.tag_name }}-macos
