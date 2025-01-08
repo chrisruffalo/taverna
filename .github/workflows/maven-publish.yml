@@ -138,4 +138,5 @@ jobs:
       - name: "Upload Artifacts to Release"
         uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true
           artifacts: artifacts/taverna*
