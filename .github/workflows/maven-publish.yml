@@ -1,7 +1,4 @@
-# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
-
-name: Maven Package
+name: Package Binaries
 
 on:
   release:
@@ -98,7 +95,7 @@ jobs:
           mv target/taverna target/syndo-${{ needs.metadata.outputs.pom-ver }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
           path: target/taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
