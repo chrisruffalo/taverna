@@ -135,11 +135,11 @@ jobs:
         with:
           path: artifacts/
 
-      - name: "Upload Artifacts to Release"
-        uses: softprops/action-gh-release@v2.2.1
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: |
-            artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
-            artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
-            artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
-            artifacts/taverna-${{ github.event.release.tag_name }}-macos
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: artifacts/taverna*
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true
+          file_glob: true
