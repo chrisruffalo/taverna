@@ -79,6 +79,14 @@ jobs:
           distribution: 'mandrel'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       # windows: install msbuild tools for native compile
       - name: Add msbuild to PATH
         if: contains(matrix.os, 'windows')
@@ -128,7 +136,7 @@ jobs:
           path: artifacts/
 
       - name: "Upload Artifacts to Release"
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.1
         with:
           files: |
             /home/runner/work/taverna/taverna/artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
