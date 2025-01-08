@@ -47,8 +47,8 @@ jobs:
     - name: 'Upload Executable JAR to Artifact Cache'
       uses: actions/upload-artifact@v4
       with:
-        name: taverna-${{ github.event.release.tag_name }}.jar
-        path: syndo/target/taverna-${{ github.event.release.tag_name }}-executable.jar
+        name: taverna-${{ github.event.release.tag_name }}-executable.jar
+        path: target/taverna-${{ github.event.release.tag_name }}.jar
         retention-days: 1
 
   build_native:
@@ -63,17 +63,20 @@ jobs:
           - os: windows-2016
             native-asset-suffix: windows-amd64.exe
             target-suffix: .exe
+          - os: macos-latest
+            native-asset-suffix: macos
+            target-suffix: ""
 
     permissions:
       contents: read
       packages: write
 
     steps:
-      # install GraalVM for native build
+      # install GraalVM (mandrel) for native build
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'mandrel'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # windows: install msbuild tools for native compile
