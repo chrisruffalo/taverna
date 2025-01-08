@@ -32,6 +32,12 @@ verified instead of using it blindly.
 
 ## Usage and Examples
 
+### Running Taverna
+Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
+execute `taverna` download the appropriate executable for your platform and execute it as a command on your path. For 
+conformity this documentation assumes you are using the executable JAR but every binary should accept the same inputs
+and work the same way.
+
 ### Determining the Trust Chain for a Domain
 In the most basic sense `taverna` allows inspection of the trust chain of a single domain(:port). While the `openssl s_client`
 command _can_ (and probably also should) do this the view taverna provides is a little more succinct.
@@ -473,8 +479,13 @@ Between this message and the fairly noisy output of `taverna` the error can be q
 when trying to quickly figure out the problem.
 
 ## Building
+A normal java build uses standard maven commands.
 ```shell
-mvn clean install
+[]$ mvn clean install
+```
+If you have a graal-style VM installed and all of the binary preerquisites you can build the native package for your platform.
+```shell
+[]$ mvn clean install -Pnative
 ```
 
 ## Notes

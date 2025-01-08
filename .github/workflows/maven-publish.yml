@@ -118,53 +118,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: 'Download Artifacts'
+      - name: 'Download Artifacts from Cache'
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
-      - name: Get release
-        id: get_release
-        uses: bruceadams/get-release@v1.3.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}          
-
-      - name: 'Upload Java Executable Jar Artifact'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: "Upload Artifacts to Release"
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
-          asset_name: taverna-${{ github.event.release.tag_name }}-executable.jar
-          asset_content_type: application/octet-stream
-
-      - name: 'Upload Linux Artifact'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
-          asset_name: taverna-${{ github.event.release.tag_name }}-linux-amd64
-          asset_content_type: application/octet-stream
-
-      - name: 'Upload Windows Artifact'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
-          asset_name: taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
-          asset_content_type: application/octet-stream
-
-      - name: 'Upload MacOS Artifact'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: artifacts/taverna-${{ github.event.release.tag_name }}-macos
-          asset_name: taverna-${{ github.event.release.tag_name }}-macos
-          asset_content_type: application/octet-stream
+          files: |
+            artifacts/taverna-${{ github.event.release.tag_name }}-executable.jar
+            artifacts/taverna-${{ github.event.release.tag_name }}-linux-amd64
+            artifacts/taverna-${{ github.event.release.tag_name }}-windows-amd64.exe
+            artifacts/taverna-${{ github.event.release.tag_name }}-macos
