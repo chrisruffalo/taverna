@@ -33,11 +33,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
-#    - name: Install GPG Secret Key
-#      run: |
-#        cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
-#        gpg --list-secret-keys --keyid-format LONG
-
     - name: Set version
       run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
@@ -122,10 +117,20 @@ jobs:
   update_release:
     name: "Update Github Release"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - asset-suffix: linux-amd64
+          - asset-suffix: windows-amd64.exe
+          - asset-suffix: macos
+          - asset-suffix: executable.ar
+
     needs: [build, build_native]
 
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@v2
@@ -135,7 +140,25 @@ jobs:
         with:
           path: artifacts/
 
-      - name: "Upload Artifacts to Release"
+      - name: "Generate Attestation for Artifact"
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'artifacts/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}'
+
+      - name: "Upload Artifact to Release"
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*/*
+          files: artifacts/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}
+
+#  central_push:
+#    name: "Release to Maven Central"
+#    runs-on: ubuntu-latest
+#    needs: [build, build_native]
+#    permissions:
+#      contents: write
+#      packages: write
+#    steps:
+#      - name: Install GPG Secret Key
+#        run: |
+#          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+#          gpg --list-secret-keys --keyid-format LONG
