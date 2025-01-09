@@ -43,7 +43,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: taverna-${{ github.event.release.tag_name }}-executable.jar
-        path: target/taverna-${{ github.event.release.tag_name }}.jar
+        path: target/taverna-${{ github.event.release.tag_name }}-executable.jar
         retention-days: 1
 
   build_native:
@@ -145,7 +145,6 @@ jobs:
         with:
           files:
             artifacts/*/*
-            /tmp/attestation.json
 
   conatiner_image:
     name: "Build and Publish Container Image"
@@ -179,6 +178,7 @@ jobs:
           file: src/main/container/Dockerfile
           push: true
           tags: chrisruffalo/taverna:${{ github.event.release.tag_name }}
+          build-args: INPUT_BINARY=taverna-${{ github.event.release.tag_name }}-linux-amd64
 
 #  central_push:
 #    name: "Release to Maven Central"

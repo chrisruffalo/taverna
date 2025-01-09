@@ -1,7 +1,6 @@
 FROM alpine:latest
 
 ARG INPUT_BINARY=taverna
-ARG OUTPUT_BINARY=taverna
 
 RUN apk add gcompat
 
