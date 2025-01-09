@@ -47,10 +47,15 @@ taverna - 1.1
 Artifact signature attestations are also provided with each build. In order to verify an artifact you will need
 the `gh` command from [GitHub](https://github.com/cli/cli/releases), the `attestation.json` file from the release, and the release artifact itself.
 ```shell
-# for release 1.1
+# for release 1.1 linux-amd64 build
 gh attestation verify -R chrisruffalo/taverna -b attestation.json taverna-1.1-linux-amd64 
 ```
-The main difference between this and a checksum file is that this proves that the file came from the GitHub build system and
+Or for a target image:
+```shell
+gh auth login
+gh attestation verify -R chrisruffalo/taverna oci://docker.io/chrisruffalo/taverna:1.1
+```
+The main difference between this and a checksum file or image digest is that this proves that the file came from the GitHub build system and
 was not replaced (along with the checksum file) for malicious purposes.
 
 
