@@ -35,8 +35,9 @@ verified instead of using it blindly.
 ### Running Taverna
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
 execute `taverna` download the appropriate executable for your platform and execute it as a command on your path. For 
-conformity this documentation assumes you are using the executable JAR but every binary should accept the same inputs
-and work the same way.
+conformity this documentation assumes you are using the executable JAR but every binary accepts the same inputs
+and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
+presented as `taverna.jar` for succinctness.
 
 ### Determining the Trust Chain for a Domain
 In the most basic sense `taverna` allows inspection of the trust chain of a single domain(:port). While the `openssl s_client`
