@@ -5,55 +5,86 @@ on:
     types: [created]
 
 jobs:
-  build:
-
+  test:
+    name: "Run Unit Tests"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Cache local Maven Repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Set version
+        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+
+      - name: Test with Maven
+        run: mvn -B -Drevision=${{ github.event.release.tag_name }} test
+
+  build:
+    name: "Build Java Executable"
+    runs-on: ubuntu-latest
+    needs: [test]
     permissions:
       contents: read
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        server-id: central
-        server-username: MAVEN_USERNAME
-        server-password: MAVEN_PASSWORD
-        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-    - name: Cache local Maven repository
-      uses: actions/cache@v4
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
+      - name: Cache local Maven Repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-#    - name: Install GPG Secret Key
-#      run: |
-#        cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
-#        gpg --list-secret-keys --keyid-format LONG
+      - name: Set version
+        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
-    - name: Set version
-      run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+      - name: Build with Maven
+        run: mvn -B -Drevision=${{ github.event.release.tag_name }} -DskipTests package
 
-    - name: Build with Maven
-      run: mvn -B -Drevision=${{ github.event.release.tag_name }} package
-
-    - name: 'Upload Executable JAR to Artifact Cache'
-      uses: actions/upload-artifact@v4
-      with:
-        name: taverna-${{ github.event.release.tag_name }}-executable.jar
-        path: target/taverna-${{ github.event.release.tag_name }}.jar
-        retention-days: 1
+      - name: 'Upload Executable JAR to Artifact Cache'
+        uses: actions/upload-artifact@v4
+        with:
+          name: taverna-${{ github.event.release.tag_name }}-executable.jar
+          path: target/taverna-${{ github.event.release.tag_name }}-executable.jar
+          retention-days: 1
 
   build_native:
+    name: "Build Native Executable"
     # build on all target os
     runs-on: ${{ matrix.os }}
+    needs: [test]
     strategy:
       matrix:
         include:
@@ -120,22 +151,88 @@ jobs:
           retention-days: 1
 
   update_release:
-    name: "Update Github Release"
+    name: "Add Artifacts to Github Release"
     runs-on: ubuntu-latest
+
     needs: [build, build_native]
 
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: 'Download Artifacts from Cache'
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
-      - name: "Upload Artifacts to Release"
+      - name: "Generate Attestation for Artifacts"
+        id: attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: "artifacts/*/taverna*"
+
+      - name: "Upload Artifact to Release"
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*/*
+          files: |
+            artifacts/*/*
+            ${{ steps.attestation.outputs.bundle-path }}
+
+  conatiner_image:
+    name: "Build and Publish Container Image"
+    runs-on: ubuntu-latest
+    needs: [build_native]
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Download Artifact from Cache'
+        uses: actions/download-artifact@v4
+        with:
+          name: taverna-${{ github.event.release.tag_name }}-linux-amd64
+          path: target/
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_LOGIN }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/main/container/Dockerfile
+          push: true
+          tags: docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
+          build-args: INPUT_BINARY=taverna-${{ github.event.release.tag_name }}-linux-amd64
+
+      - name: Attest Docker Image
+        uses: actions/attest-build-provenance@v2
+        id: attest
+        with:
+          subject-name: docker.io/chrisruffalo/taverna
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+#  central_push:
+#    name: "Release to Maven Central"
+#    runs-on: ubuntu-latest
+#    needs: [build, build_native]
+#    permissions:
+#      contents: write
+#      packages: write
+#    steps:
+#      - name: Install GPG Secret Key
+#        run: |
+#          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+#          gpg --list-secret-keys --keyid-format LONG
