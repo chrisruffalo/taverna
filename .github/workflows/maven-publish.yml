@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-
+    name: "Build Java Executable"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,7 +25,7 @@ jobs:
         server-password: MAVEN_PASSWORD
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-    - name: Cache local Maven repository
+    - name: Cache local Maven Repo
       uses: actions/cache@v4
       with:
         path: ~/.m2/repository
@@ -47,6 +47,7 @@ jobs:
         retention-days: 1
 
   build_native:
+    name: "Build Native Executable"
     # build on all target os
     runs-on: ${{ matrix.os }}
     strategy:
@@ -123,7 +124,7 @@ jobs:
           - asset-suffix: linux-amd64
           - asset-suffix: windows-amd64.exe
           - asset-suffix: macos
-          - asset-suffix: executable.ar
+          - asset-suffix: executable.jar
 
     needs: [build, build_native]
 
