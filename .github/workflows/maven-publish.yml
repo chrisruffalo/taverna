@@ -169,17 +169,19 @@ jobs:
         with:
           path: artifacts/
 
-      - name: "Generate Attestation for Artifacts"
-        id: attestation
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: "artifacts/*/taverna*"
-
       - name: Generate checksums
         uses: jmgilman/actions-generate-checksum@v1
         with:
           patterns: |
             artifacts/*/*
+
+      - name: "Generate Attestation for Artifacts"
+        id: attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            "artifacts/*/taverna*"
+            checksum.txt
 
       - name: "Upload Artifact to Release"
         uses: softprops/action-gh-release@v2

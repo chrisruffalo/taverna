@@ -43,6 +43,7 @@ of choice.
 []$ podman run docker.io/chrisruffalo/taverna:1.1 --version
 taverna - 1.1
 ```
+Checksums for each build are provided by the 
 
 Artifact signature attestations are also provided with each build. In order to verify an artifact you will need
 the `gh` command from [GitHub](https://github.com/cli/cli/releases), the `attestation.json` file from the release, and the release artifact itself.
