@@ -220,7 +220,7 @@ jobs:
         uses: actions/attest-build-provenance@v2
         id: attest
         with:
-          subject-name: index.docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
+          subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 

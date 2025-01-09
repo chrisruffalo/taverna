@@ -37,10 +37,10 @@ conformity this documentation assumes you are using the executable JAR but every
 and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
 presented as `taverna.jar` for succinctness.
 
-A container image is also provided at `` and can be run similarly to the executable commands in your container runtime
+A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands in your container runtime
 of choice.
 ```shell
-[]$ podman run taverna:1.1 --version
+[]$ podman run docker.io/chrisruffalo/taverna:1.1 --version
 
 ```
 
