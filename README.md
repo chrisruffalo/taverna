@@ -30,14 +30,24 @@ fail to trust the remote endpoints it needs to communicate with _or_ the trust c
 Automatic trust updating is only recommended at development time when the output can be manually
 verified instead of using it blindly.
 
-## Usage and Examples
-
-### Running Taverna
+## Running Taverna
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
-execute `taverna` download the appropriate executable for your platform and execute it as a command on your path. For 
+execute `taverna` download the appropriate executable for your platform and execute it as a command on your path. For
 conformity this documentation assumes you are using the executable JAR but every binary accepts the same inputs
 and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
 presented as `taverna.jar` for succinctness.
+
+A container image is also provided at `` and can be run similarly to the executable commands in your container runtime
+of choice.
+```shell
+[]$ podman run taverna:1.1 --version
+
+```
+
+Artifact signature attestations are also provided with each build. 
+
+
+## Usage and Examples
 
 ### Determining the Trust Chain for a Domain
 In the most basic sense `taverna` allows inspection of the trust chain of a single domain(:port). While the `openssl s_client`
