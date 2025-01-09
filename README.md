@@ -32,32 +32,32 @@ verified instead of using it blindly.
 
 ## Running Taverna
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
-execute `taverna` download the appropriate executable for your platform and execute it as a command on your path. For
-conformity this documentation assumes you are using the executable JAR but every binary accepts the same inputs
+execute `taverna` download the appropriate executable for the target platform and execute it as a command. For
+conformity this documentation uses the executable JAR but every binary accepts the same inputs
 and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
 presented as `taverna.jar` for succinctness.
 
-A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands in your container runtime
-of choice.
+A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands the chosen container runtime.
 ```shell
 []$ podman run docker.io/chrisruffalo/taverna:1.1 --version
 taverna - 1.1
 ```
-Checksums for each build are provided by the 
+Checksums for each build are provided by the build system.
 
-Artifact signature attestations are also provided with each build. In order to verify an artifact you will need
-the `gh` command from [GitHub](https://github.com/cli/cli/releases), the `attestation.json` file from the release, and the release artifact itself.
+Artifact signature attestations are also provided with each build. In order to verify an artifact the `gh` command 
+from [GitHub](https://github.com/cli/cli/releases) is required along with the `attestation.json` file from the release and the release 
+artifact itself. The checksum.txt file is also attested to verify the provenance of that file.
 ```shell
 # for release 1.1 linux-amd64 build
 gh attestation verify -R chrisruffalo/taverna -b attestation.json taverna-1.1-linux-amd64 
 ```
-Or for a target image:
+For a target image the process is similar but requires a login to GitHub first.
 ```shell
 gh auth login
 gh attestation verify -R chrisruffalo/taverna oci://docker.io/chrisruffalo/taverna:1.1
 ```
 The main difference between this and a checksum file or image digest is that this proves that the file came from the GitHub build system and
-was not replaced (along with the checksum file) for malicious purposes.
+was not replaced (along with the checksum file) for malicious purposes. Some of this may sound like overkill but this release
 
 
 ## Usage and Examples
