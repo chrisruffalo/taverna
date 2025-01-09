@@ -118,13 +118,6 @@ jobs:
   update_release:
     name: "Add Artifacts to Github Release"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - asset-suffix: linux-amd64
-          - asset-suffix: windows-amd64.exe
-          - asset-suffix: macos
-          - asset-suffix: executable.jar
 
     needs: [build, build_native]
 
@@ -142,18 +135,18 @@ jobs:
           name: taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}
           path: artifacts/
 
-      - name: "Generate Attestation for Artifact"
+      - name: "Generate Attestation for Artifacts"
         id: attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'artifacts/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}'
+          subject-path: "artifacts/*/taverna*"
 
       - name: "Upload Artifact to Release"
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}/taverna-${{ github.event.release.tag_name }}-${{ matrix.asset-suffix }}
-            ${{ outputs.attestation.bundle-path }}
+          files:
+            artifacts/*/*
+            /tmp/attestation.json
 
   conatiner_image:
     name: "Build Container Image"
