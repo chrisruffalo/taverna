@@ -10,7 +10,8 @@ phone calls out of hours if some remote host changes their certificates and it w
 issues in the face of esoteric or meaningless error messages.
 
 How many of us are tired of "PKIX path building to target" errors? Even if the error is understood sometimes
-the details are of exactly why are not obvious.
+the details are of exactly why are not obvious. That error, and similar errors, only let you know that _something_
+is wrong or missing in your trust material and `taverna` is here to help figure out specifically _what_ is wrong.
 
 Yes, there are tools and commands that could do these things individually but they have to be chained
 together. The intent of `taverna` is to put all of those things under one roof, so to speak, and allow
@@ -19,9 +20,10 @@ developers/deployers/maintainers to create "tailored trust" packages for applica
 ## Goals
 Taverna is designed to take a list of domains and a set of trust material and ensure that, based on that trust,
 every single domain can be verified/trusted. Taverna also gives good output to show relevant details of the
-trust that is loaded from disk or expected by a domain. It can also, optionally, create configuration output for Java applications
-to use that trust. It can also create single unified trust sources (directory, file, or truststore) that contain
-all the trust expected to verify the given domains. Finally, it can find gaps in the trust and fill those using the certificates advertised by the domains.
+trust that is loaded from disk or expected by a domain. It can also, optionally, create configuration output for 
+applications to use that trust. It can also create single unified trust sources (directory, file, or truststore) that 
+contain all the trust expected to verify the given domains. Finally, it can find gaps in the trust and fill those using the 
+certificates advertised by the domains.
 
 ## Usage Model
 Taverna should be used in build or deployment pipelines to ensure that the correct trust is included
@@ -491,6 +493,9 @@ anchored by: [serial=b0573e9173972770dbb487cb3a452b38] CN=E6,O=Let's Encrypt,C=U
 verified trusted connection
 ```
 
+In development and testing environments you would only be validating against the trust stores required for the internal IDP instances
+using the cluster or organizational trust artifacts. In that case you would want to _make sure_ that you _couldn't_ trust the `auth0.com`
+domain.
 Taverna can also be used at runtime or deployment time to verify that the trust the application is going to load is sufficient. A startup
 script can be modified to check the trust and stop the application from starting if it is insufficient.
 ```bash
@@ -501,7 +506,16 @@ if [[ "x0" != "x${EXIT_CODE}" ]]; then
   exit ${EXIT_CODE}
 fi
 ```
-Between this message and the fairly noisy output of `taverna` the error can be quickly found which is helpful
+You could also set it up in reverse to make sure you can't connect to where you don't want to connect.
+```bash
+java -jar taverna.jar -d internal.idp.corp -s overly_broad.p12
+EXIT_CODE=$?
+if [[ "x0" == "x${EXIT_CODE}" ]]; then
+  echo "this service should not be able to trust the internal IDP, exiting"
+  exit 1
+fi
+```
+Between these message and the fairly noisy output of `taverna` the error can be quickly found which is helpful
 when trying to quickly figure out the problem.
 
 ## Building
