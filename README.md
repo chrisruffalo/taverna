@@ -1,11 +1,11 @@
 # Ταβερνα (Taverna)
 Taverna gets its name from the phrase "_**T**rust **A**nd **V**erify_". It is a tool for comparing an applications
 current trust material against the domains to trust and ensuring that the trust chain is correct before
-finding out the hard way (in production, at night, while on PTO). 
+finding out the hard way (in production, at night, while on PTO).
 
 ## Problem
 Taverna comes from having to deliver immutable applications to various environments (production and non-production) that
-have different trust profiles. There are a lot of ways to handle this mechanically but that won't stop 
+have different trust profiles. There are a lot of ways to handle this mechanically but that won't stop
 phone calls out of hours if some remote host changes their certificates and it won't help debug the trust
 issues in the face of esoteric or meaningless error messages.
 
@@ -18,15 +18,15 @@ developers/deployers/maintainers to create "tailored trust" packages for applica
 
 ## Goals
 Taverna is designed to take a list of domains and a set of trust material and ensure that, based on that trust,
-every single domain can be verified/trusted. Taverna also gives good output to show relevant details of the 
+every single domain can be verified/trusted. Taverna also gives good output to show relevant details of the
 trust that is loaded from disk or expected by a domain. It can also, optionally, create configuration output for Java applications
 to use that trust. It can also create single unified trust sources (directory, file, or truststore) that contain
 all the trust expected to verify the given domains. Finally, it can find gaps in the trust and fill those using the certificates advertised by the domains.
 
 ## Usage Model
-Taverna should be used in build or deployment pipelines to ensure that the correct trust is included 
+Taverna should be used in build or deployment pipelines to ensure that the correct trust is included
 for the application environment. Ideally build or a deployment would fail if the new application would
-fail to trust the remote endpoints it needs to communicate with _or_ the trust could be automatically updated. 
+fail to trust the remote endpoints it needs to communicate with _or_ the trust could be automatically updated.
 Automatic trust updating is only recommended at development time when the output can be manually
 verified instead of using it blindly.
 
@@ -41,10 +41,17 @@ A container image is also provided at `https://hub.docker.com/r/chrisruffalo/tav
 of choice.
 ```shell
 []$ podman run docker.io/chrisruffalo/taverna:1.1 --version
-
+taverna - 1.1
 ```
 
-Artifact signature attestations are also provided with each build. 
+Artifact signature attestations are also provided with each build. In order to verify an artifact you will need
+the `gh` command from [GitHub](https://github.com/cli/cli/releases), the `attestation.json` file from the release, and the release artifact itself.
+```shell
+# for release 1.1
+gh attestation verify -R chrisruffalo/taverna -b attestation.json taverna-1.1-linux-amd64 
+```
+The main difference between this and a checksum file is that this proves that the file came from the GitHub build system and
+was not replaced (along with the checksum file) for malicious purposes.
 
 
 ## Usage and Examples
@@ -63,10 +70,10 @@ certificate chain from google.com:
         [serial=77bd0d6cdb36f91aea210fc4f058d30d] CN=GTS Root R1,O=Google Trust Services LLC,C=US [3ee0278df71fa3c125c4cd487f01d774694e6fc57e0cd94c24efd769133918e5] [issuer=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, not trusted] 
         not trusted
 ```
-This output has the entire trust chain and if the hostname (domain) of the service matches one of the names provided in the certificate. 
+This output has the entire trust chain and if the hostname (domain) of the service matches one of the names provided in the certificate.
 Also provided are the DNs (distinguished names) of the certificate and the issuer as well as the serial and SHA-256 thumbrint.
 
-Multiple domains can be specified. A port can be specified by appending ":\<port\>" to the domain name. 
+Multiple domains can be specified. A port can be specified by appending ":\<port\>" to the domain name.
 ```shell
 []$ java -jar taverna.jar -d google.com -d amazon.com:443
 loaded 0 total certificates
@@ -162,10 +169,10 @@ The `taverna` command supports multiple output types:
 
 The `taverna` command can be used to copy the trust sources into a single collated output with or without
 validation of domains. This is a convenience feature to reduce the number of commands required for trust management.
-It is analogous to the `openssl x509 -in -out`, `keytool -import`, and `keytool -export` commands. It replaces 
+It is analogous to the `openssl x509 -in -out`, `keytool -import`, and `keytool -export` commands. It replaces
 most options with strong defaults (opinions).
 
-In the simplest scenario the certificate chosen for the domain google.com is verified and written to the trust store. 
+In the simplest scenario the certificate chosen for the domain google.com is verified and written to the trust store.
 The default trust store password of 'changeit' will be used unless one is specified.
 ```shell
 []$ java -jar taverna.jar -s google-wr2.pem -d google.com -outstore trust.p12 -outstorepass "n3wtRust!"
@@ -232,7 +239,7 @@ wrote trust store to 'trust.p12'
 The simplified trust only contains one entry, the first certificate from among the trust sources that could
 be used to trust the chain of certificates returned by the target domain.
 
-This command is more useful if you have an entire pile of certificates that you want to load and just let `taverna` 
+This command is more useful if you have an entire pile of certificates that you want to load and just let `taverna`
 sort it out.
 ```shell
 []$ java -jar taverna.jar -s pki -d google.com -d amazon.com --outstore trust.p12 --outstorepass "n3wtRust!"
@@ -317,7 +324,7 @@ certificate chain from google.com:
         adding to trusted material: [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4]
         connection verified with updated trust
 ```
-Trust completion has several modes. The above example is in the default, "FIRST_SUBORDINATE", mode which will find the 
+Trust completion has several modes. The above example is in the default, "FIRST_SUBORDINATE", mode which will find the
 first certificate beyond the domain's specific certificate.
 
 Another mode is "DIRECT" meaning that the domain certificate itself will be added.
@@ -334,7 +341,7 @@ certificate chain from google.com:
         connection verified with updated trust
 ```
 
-The final mode is "MOST_TRUSTED" which will add the deepest certificate (closest to the anchor) provided by the service. 
+The final mode is "MOST_TRUSTED" which will add the deepest certificate (closest to the anchor) provided by the service.
 ```shell
 []$ java -jar taverna.jar -d google.com --complete --completion-mode MOST_TRUSTED
 loaded 0 total certificates
@@ -382,11 +389,11 @@ wrote trust store to 'google.p12'
 ```
 
 ### Convenience Functions
-The `taverna` command is also helpful for general trust viewing and manipulation. As demonstrated elsewhere in this 
+The `taverna` command is also helpful for general trust viewing and manipulation. As demonstrated elsewhere in this
 README `taverna` can be used to inspect the certificate chain from a given domain. The same thing is possible
 with individual trust sources.
 
-To inspect a single or multiple trust sources a command can be run in "no domain" mode with the flag "--no-domains" 
+To inspect a single or multiple trust sources a command can be run in "no domain" mode with the flag "--no-domains"
 which tells the command that it can ignore the error that normally happens when no domains are specified.
 ```shell
 []$ java -jar taverna.jar -s google-r1.pem -s google-wr2.pem --no-domains
