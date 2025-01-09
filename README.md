@@ -9,13 +9,13 @@ have different trust profiles. There are a lot of ways to handle this mechanical
 phone calls out of hours if some remote host changes their certificates and it won't help debug the trust
 issues in the face of esoteric or meaningless error messages.
 
-How many of us are tired of "PKIX path building to target" errors? Even if the error is understood sometimes
-the details are of exactly why are not obvious. That error, and similar errors, only let you know that _something_
+The "PKIX path building to target" is the "PC LOAD LETTER" error of the HTTPS age. Even when the error is understood 
+sometimes the details are of exactly why are not obvious. That error, and similar errors, only let you know that _something_
 is wrong or missing in your trust material and `taverna` is here to help figure out specifically _what_ is wrong.
 
-Yes, there are tools and commands that could do these things individually but they have to be chained
-together. The intent of `taverna` is to put all of those things under one roof, so to speak, and allow
-developers/deployers/maintainers to create "tailored trust" packages for applications.
+The intent of `taverna` is to put the necessary set of features to diagnose and fix these issues under one roof. Having
+access to the feature set of `taverna` allows developers/deployers/maintainers to create "tailored trust" packages for 
+applications.
 
 ## Goals
 Taverna is designed to take a list of domains and a set of trust material and ensure that, based on that trust,
@@ -25,7 +25,18 @@ applications to use that trust. It can also create single unified trust sources 
 contain all the trust expected to verify the given domains. Finally, it can find gaps in the trust and fill those using the 
 certificates advertised by the domains.
 
-## Running Taverna
+## Building
+Taverna uses a maven-based Java build. Taverna requires Java 21 and Maven 3.9 to build.
+```shell
+[]$ mvn clean install
+```
+If a Graal-compatible JVM is installed (Graal, GraalCE, Mandrel, etc) a native binary can be built for the
+current platform.
+```shell
+[]$ mvn clean install -Dnative
+```
+
+## Running
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
 execute `taverna` download the appropriate executable for the target platform and execute it as a command. For
 conformity this documentation uses the executable JAR but every binary accepts the same inputs
@@ -87,16 +98,6 @@ presented in the output. There are more examples [in the documentation](docs/EXA
 
 ### Real World Use
 For more information about a real-world use-case for `taverna` and tailored trust see [the tailored trust documentation](docs/TAILORED_TRUST.md).
-
-## Building
-A normal java build uses standard maven commands.
-```shell
-[]$ mvn clean install
-```
-If you have a graal-style VM installed and all the binary prerequisites you can build the native package for your platform.
-```shell
-[]$ mvn clean install -Pnative
-```
 
 ## Notes
 Unless otherwise stated all truststores in this project use the password "changeit". None of
