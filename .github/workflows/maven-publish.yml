@@ -91,9 +91,9 @@ jobs:
           - os: ubuntu-latest
             native-asset-suffix: linux-amd64
             target-suffix: ""
-#          - os: windows-latest
-#            native-asset-suffix: windows-amd64.exe
-#            target-suffix: .exe
+          - os: windows-latest
+            native-asset-suffix: windows-amd64.exe
+            target-suffix: .exe
           - os: macos-latest
             native-asset-suffix: macos
             target-suffix: ""
