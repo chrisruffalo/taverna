@@ -3,6 +3,7 @@ package io.github.chrisruffalo.taverna.cmd;
 import com.beust.jcommander.JCommander;
 import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.error.Codes;
+import io.github.chrisruffalo.taverna.meta.ApplicationProperties;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.model.StoreType;
 import io.github.chrisruffalo.taverna.opt.OptGlobal;
@@ -37,9 +38,31 @@ public class Entrypoint {
         final OptGlobal optGlobal = new OptGlobal();
         final JCommander jCommander = JCommander
                 .newBuilder()
+                .programName("taverna")
+                .acceptUnknownOptions(true)
                 .addObject(optGlobal)
                 .build();
-        jCommander.parse(args);
+
+        boolean showHelp = false; // intellij wants me to remove this initializer but honestly that's not how i was taught so i won't. yes it does nothing.
+        try {
+            jCommander.parse(args);
+            showHelp = optGlobal.isHelp();
+        } catch (Exception e) {
+            showHelp = true;
+            System.err.println(e.getMessage());
+        }
+
+        if (optGlobal.isVersion()) {
+            System.out.printf("%s - %s\n", jCommander.getProgramName(), ApplicationProperties.version());
+            System.exit(0);
+        }
+
+        // if an error happens or the help is requested
+        // show help and exit
+        if (showHelp) {
+            jCommander.usage();
+            System.exit(0);
+        }
 
         final Entrypoint entrypoint = new Entrypoint();
         final int code = entrypoint.run(optGlobal);

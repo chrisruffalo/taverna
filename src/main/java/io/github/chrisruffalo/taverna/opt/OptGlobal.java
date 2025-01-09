@@ -53,6 +53,12 @@ public class OptGlobal {
     @Parameter(names = {"--no-domains"}, description = "If this flag is set then no domains will be checked. (Acknowledges the \"no domains\" error and continues to be able to output trust sources.)")
     private boolean noDomains = false;
 
+    @Parameter(names = {"-h", "--help"}, description = "Show the help message.", help = true)
+    private boolean help;
+
+    @Parameter(names = {"-v", "--version"}, description = "Show version information")
+    private boolean version;
+
     public List<String> getDomains() {
         return domains;
     }
@@ -163,5 +169,21 @@ public class OptGlobal {
 
     public void setNoDomains(boolean noDomains) {
         this.noDomains = noDomains;
+    }
+
+    public boolean isHelp() {
+        return help;
+    }
+
+    public void setHelp(boolean help) {
+        this.help = help;
+    }
+
+    public boolean isVersion() {
+        return version;
+    }
+
+    public void setVersion(boolean version) {
+        this.version = version;
     }
 }

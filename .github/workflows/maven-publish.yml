@@ -115,7 +115,7 @@ jobs:
           retention-days: 1
 
   update_release:
-    name: "Update Github Release"
+    name: "Add Artifacts to Github Release"
     runs-on: ubuntu-latest
     strategy:
       matrix:
