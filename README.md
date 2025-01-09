@@ -39,8 +39,8 @@ presented as `taverna.jar` for succinctness.
 
 A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands the chosen container runtime.
 ```shell
-[]$ podman run docker.io/chrisruffalo/taverna:1.1 --version
-taverna - 1.1
+[]$ podman run docker.io/chrisruffalo/taverna:1.2 --version
+taverna - 1.2
 ```
 Checksums for each build are provided by the build system.
 
@@ -48,13 +48,13 @@ Artifact signature attestations are also provided with each build. In order to v
 from [GitHub](https://github.com/cli/cli/releases) is required along with the `attestation.json` file from the release and the release 
 artifact itself. The checksum.txt file is also attested to verify the provenance of that file.
 ```shell
-# for release 1.1 linux-amd64 build
-gh attestation verify -R chrisruffalo/taverna -b attestation.json taverna-1.1-linux-amd64 
+# for release 1.2 linux-amd64 build
+gh attestation verify -R chrisruffalo/taverna -b attestation.json taverna-1.2-linux-amd64 
 ```
 For a target image the process is similar but requires a login to GitHub first.
 ```shell
 gh auth login
-gh attestation verify -R chrisruffalo/taverna oci://docker.io/chrisruffalo/taverna:1.1
+gh attestation verify -R chrisruffalo/taverna oci://docker.io/chrisruffalo/taverna:1.2
 ```
 The main difference between this and a checksum file or image digest is that this proves that the file came from the GitHub build system and
 was not replaced (along with the checksum file) for malicious purposes. Some of this may sound like overkill but this release
@@ -444,6 +444,8 @@ This feature set, provided for ease of use, allows users to manage certificates 
 | `--completion-mode` |         | Specifies the mode to use when completion is requested. In `DIRECT` mode the domain certificate will be added to the trust, in `FIRST_SUBORDINATE` mode the first subordinate certificate from the domain will be added. In `MOST_TRUSTED` mode the deepest certificate in the chain will be trusted.", defaultValueDescription = "The default value is `FIRST_SUBORDINATE` which allows a narrower trust to be accepted. |               |
 | `--no-verify`       |         | If this flag is set then the connection to verify a domain after finding the appropriate trust will not be made. (Skips the verify step after determining trust.) This option will reduce the number of outbound network connections and potential errors at the cost of skipping one step.                                                                                                                               |               |               
 | `--no-domains`      |         | If this flag is set then no domains will be checked. (Acknowledges the "no domains" error and continues to be able to output trust sources.)                                                                                                                                                                                                                                                                              |               |
+| `--version`         | `-v`    | If present the version of the executable is printed and then the process exits.                                                                                                                                                                                                                                                                                                                                           |               |
+| `--help`            | `-h`    | If present the help message is printed and the process exits.                                                                                                                                                                                                                                                                                                                                                             |               |
 
 ## Real-World Example of Tailored Trust
 The clearest real-world use, aside from verifying trust stores, is enabling something that could be called "tailored trust".
