@@ -24,7 +24,7 @@
     "methods":[{"name":"<init>","parameterTypes":[] }]
   },
   {
-    "name":"io.github.chrisruffalo.taverna.opt.OptGlobal",
+    "name":"io.github.chrisruffalo.taverna.cmd.opt.CliOptions",
     "allDeclaredFields":true,
     "allDeclaredMethods":true
   },
