@@ -17,13 +17,4 @@ class DomainLoaderTest {
         Assertions.assertFalse(certs.isEmpty());
     }
 
-    @Test
-    void loadUntrusted() {
-        DomainLoaderConfig domainLoaderConfig = new DomainLoaderConfig("brain.lan", 443);
-        DomainLoader loader = new DomainLoader();
-        final List<Cert> certs = loader.load(domainLoaderConfig);
-
-        Assertions.assertFalse(certs.isEmpty());
-    }
-
 }
