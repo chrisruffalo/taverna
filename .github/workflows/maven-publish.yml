@@ -191,10 +191,12 @@ jobs:
             checksum.txt
             ${{ steps.attestation.outputs.bundle-path }}
 
-  conatiner_image:
+  container_image:
     name: "Build and Publish Container Image"
     runs-on: ubuntu-latest
     needs: [build_native]
+    outputs:
+      image_digest: ${{ steps.push.outputs.digest }}
     permissions:
       packages: write
       contents: read
@@ -232,6 +234,7 @@ jobs:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
 
   release_to_central:
     name: "Release to Maven Central"
@@ -276,3 +279,28 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSS_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+  update_release_with_links:
+    name: "Update/Finalize Release"
+    runs-on: ubuntu-latest
+    needs: [release_to_central,container_image]
+    steps:
+      - name: "Add Maven URLs to Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ##Maven Artifacts:
+              |module|url|
+              |------|---|
+              |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ github.event.release.tag_name }}/overview|
+              |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ github.event.release.tag_name }}/overview|
+              |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ github.event.release.tag_name }}/overview|
+          append_body: true
+
+      - name: "Add Docker URL to Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ##Docker Image
+            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.image_digest }}
+          append_body: true
