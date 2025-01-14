@@ -76,8 +76,8 @@ jobs:
       - name: 'Upload Executable JAR to Artifact Cache'
         uses: actions/upload-artifact@v4
         with:
-          name: taverna-${{ github.event.release.tag_name }}-executable.jar
-          path: target/taverna-${{ github.event.release.tag_name }}-executable.jar
+          name: taverna-cmd-${{ github.event.release.tag_name }}-executable.jar
+          path: taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-executable.jar
           retention-days: 1
 
   build_native:
@@ -141,13 +141,13 @@ jobs:
       - name: Build with Maven
         run: |
           mvn -B --update-snapshots -DskipTests -Drevision="${{ github.event.release.tag_name }}" -Pnative package
-          mv target/taverna${{ matrix.target-suffix }} target/taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          mv taverna-cmd/target/taverna-cmd${{ matrix.target-suffix }} taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
         uses: actions/upload-artifact@v4
         with:
-          name: taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
-          path: target/taverna-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          name: taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          path: taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
           retention-days: 1
 
   update_release:
@@ -206,7 +206,7 @@ jobs:
       - name: 'Download Artifact from Cache'
         uses: actions/download-artifact@v4
         with:
-          name: taverna-${{ github.event.release.tag_name }}-linux-amd64
+          name: taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
           path: target/
 
       - name: Log in to Docker Hub
@@ -219,11 +219,11 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: taverna-cmd
           file: src/main/container/Dockerfile
           push: true
           tags: docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
-          build-args: INPUT_BINARY=taverna-${{ github.event.release.tag_name }}-linux-amd64
+          build-args: INPUT_BINARY=taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
 
       - name: Attest Docker Image
         uses: actions/attest-build-provenance@v2
