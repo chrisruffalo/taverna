@@ -1,13 +1,37 @@
-name: Package Binaries
+name: Publish Artifacts
 
 on:
   release:
     types: [created]
+  push:
+    branches:
+      - release-*
 
 jobs:
+  metadata:
+    name: "Calculate Metadata"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture branch info
+        if: contains(github.ref, 'refs/heads/')
+        run: |
+          echo "release_version=${{ github.event.release.tag_name }}-SNAPSHOT" >> $GITHUB_OUTPUT
+
+      - name: Capture branch info
+        if: "!contains(github.ref, 'refs/heads/')"
+        run: |
+          echo "release_version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+
+    outputs:
+      release_version: ${{ steps.metadata.outputs.release_version }}
+
   test:
     name: "Run Unit Tests"
     runs-on: ubuntu-latest
+    needs: [metadata]
     permissions:
       contents: read
 
@@ -32,11 +56,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Set version
-        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+      - name: Set release version
+        run: mvn -B versions:set -DnewVersion=${{ needs.metadata.outputs.release_version }}
 
       - name: Test with Maven
-        run: mvn -B -Drevision=${{ github.event.release.tag_name }} test
+        run: mvn -B test
 
   build:
     name: "Build Java Executable"
@@ -67,21 +91,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Set version
-        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+      - name: Set release version
+        run: mvn -B versions:set -DnewVersion=${{ needs.metadata.outputs.release_version }}
 
       - name: Build with Maven
-        run: mvn -B -Drevision=${{ github.event.release.tag_name }} -DskipTests package
+        run: mvn -B -DskipTests package
 
       - name: 'Upload Executable JAR to Artifact Cache'
         uses: actions/upload-artifact@v4
         with:
-          name: taverna-cmd-${{ github.event.release.tag_name }}-executable.jar
-          path: taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-executable.jar
+          name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-executable.jar
+          path: taverna-cmd/target/taverna-cmd-${{ needs.metadata.outputs.release_version }}-executable.jar
           retention-days: 1
 
   build_native:
-    name: "Build Native Executable"
+    name: "Build Native Executable Command"
     # build on all target os
     runs-on: ${{ matrix.os }}
     needs: [test]
@@ -135,23 +159,68 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Set version
-        run: mvn -B versions:set -DnewVersion="${{ github.event.release.tag_name }}"
+      - name: Set release version
+        run: mvn -B versions:set -DnewVersion=${{ needs.metadata.outputs.release_version }}
 
       - name: Build with Maven
         run: |
-          mvn -B --update-snapshots -DskipTests -Drevision="${{ github.event.release.tag_name }}" -Pnative package
-          mv taverna-cmd/target/taverna-cmd${{ matrix.target-suffix }} taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          mvn -B --update-snapshots -Dbuild=cli -DskipTests -Drevision="${{ needs.metadata.outputs.release_version }}" -Dnative package
+          mv taverna-cmd/target/taverna-cmd${{ matrix.target-suffix }} taverna-cmd/target/taverna-cmd-${{ needs.metadata.outputs.release_version }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
         uses: actions/upload-artifact@v4
         with:
-          name: taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
-          path: taverna-cmd/target/taverna-cmd-${{ github.event.release.tag_name }}-${{ matrix.native-asset-suffix }}
+          name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-${{ matrix.native-asset-suffix }}
+          path: taverna-cmd/target/taverna-cmd-${{ needs.metadata.outputs.release_version }}-${{ matrix.native-asset-suffix }}
           retention-days: 1
+
+  build_native_operator:
+    name: "Build Native Operator"
+    # build on all target os
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # install GraalVM (mandrel) for native build
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'mandrel'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # windows: install msbuild tools for native compile
+      - name: Add msbuild to PATH
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      # ubuntu: install packages needed for graalvm native compile
+      - name: Install additional packages
+        run: sudo apt-get install -y zlib1g-dev
+
+      - uses: actions/checkout@v4
+
+      - name: Set release version
+        run: mvn -B versions:set -DnewVersion=${{ needs.metadata.outputs.release_version }}
+
+      - name: Build with Maven
+        run: |
+          mvn -B --update-snapshots -Dbuild=operator -DskipTests -Drevision="${{ github.event.release.tag_name }}" -DquarkusNative package
 
   update_release:
     name: "Add Artifacts to Github Release"
+    if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     runs-on: ubuntu-latest
 
     needs: [build, build_native]
@@ -200,6 +269,8 @@ jobs:
       contents: read
       attestations: write
       id-token: write
+    outputs:
+      image_digest: ${{ steps.push.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
 
@@ -225,9 +296,6 @@ jobs:
           tags: docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
           build-args: INPUT_BINARY=taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
 
-      - name: Set Image Digest
-        run: echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_OUTPUT
-
       - name: Attest Docker Image
         uses: actions/attest-build-provenance@v2
         id: attest
@@ -245,7 +313,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -272,11 +339,11 @@ jobs:
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
 
-      - name: Set version
-        run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+      - name: Set release version
+        run: mvn -B versions:set -DnewVersion=${{ needs.metadata.outputs.release_version }}
 
       - name: Publish to Maven Central
-        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests -Drevision=${{ github.event.release.tag_name }} clean deploy
+        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests clean deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSS_PASSWORD }}
@@ -286,6 +353,7 @@ jobs:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
     needs: [release_to_central,update_release,container_image]
+    if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     permissions:
       contents: write
       id-token: write
@@ -308,5 +376,5 @@ jobs:
         with:
           body: |
             ##Docker Image
-            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.IMAGE_DIGEST }}
+            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.image_digest }}
           append_body: true
