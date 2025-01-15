@@ -14,13 +14,18 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This is the core runner for the taverna trust-and-verify
+ * process. This encapsulates the logic for re-use between
+ * the different operating modes.
+ *
+ */
 public class Engine {
 
     final OutputLogger logger;
@@ -32,6 +37,11 @@ public class Engine {
         this.options = options;
     }
 
+    /**
+     * Runs the full trust-and-verify process.
+     *
+     * @return a status code. non-zero for error, zero for success.
+     */
     public int run() {
         // load domains to check trust against
         final List<String> domains = new LinkedList<>(options.getDomains());
