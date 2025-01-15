@@ -246,7 +246,6 @@ jobs:
 
   update_release:
     name: "Add Artifacts to Github Release"
-    if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     outputs:
       artifact_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
     runs-on: ubuntu-latest
@@ -384,10 +383,9 @@ jobs:
   update_release_with_links:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
-    needs: [metadata,release_to_central,update_release,update_release,container_image]
+    needs: [metadata,release_to_central,update_release,update_release,container_image,build_native_operator]
     permissions:
       contents: write
-      id-token: write
     steps:
       - name: "Add Attestation URLs"
         uses: softprops/action-gh-release@v2
@@ -405,11 +403,11 @@ jobs:
           name: ${{ needs.metadata.outputs.release_name }}
           body: |
             ##Maven Artifacts:
-              |module|url|
-              |------|---|
-              |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview|
-              |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview|
-              |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview|
+            |module|url|
+            |------|---|
+            |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview|
+            |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview|
+            |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview|
           append_body: true
 
       - name: "Add Docker URL to Release"
@@ -417,6 +415,6 @@ jobs:
         with:
           name: ${{ needs.metadata.outputs.release_name }}
           body: |
-            ##Docker Image
+            ##Docker Image:
             https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }}
           append_body: true
