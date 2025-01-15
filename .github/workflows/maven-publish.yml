@@ -295,8 +295,10 @@ jobs:
       id-token: write
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
+      docker_attest_id: ${{ steps.attest_docker.outputs.attestation-id }}
       docker_attest_url: ${{ steps.attest_docker.outputs.attestation-url }}
       quay_attest_url: ${{ steps.attest_quay.outputs.attestation-url }}
+      quay_attest_id: ${{ steps.attest_quay.outputs.attestation-id }}
     steps:
       - uses: actions/checkout@v4
 
@@ -305,12 +307,6 @@ jobs:
         with:
           name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
           path: taverna-cmd/target/
-
-      # allows attestation to work from the build-push-action
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: linux/amd64
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -419,8 +415,8 @@ jobs:
             ## Attestations
             
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
-            [Docker Hub Image](${{ needs.container_image.outputs.docker_attest_url }})
-            [Quay Image](${{ needs.container_image.outputs.quay_attest_url }})
+            [Docker Hub Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.docker_attest_id }})
+            [Quay Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.quay_attest_id }})
           append_body: true
 
       - name: "Add Maven URLs to Release"
