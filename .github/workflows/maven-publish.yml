@@ -334,7 +334,7 @@ jobs:
           file: taverna-cmd/src/main/container/Dockerfile
           push: true
           tags: docker.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
-          build-args: INPUT_BINARY=taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
+          build-args: INPUT_BINARY="taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64",VERSION="${{ needs.metadata.outputs.image_tag }}",FULL_VERSION="${{ needs.metadata.outputs.release_version }}",GIT_HASH="${{ github.sha }}"
 
       - name: Attest Docker Image
         uses: actions/attest-build-provenance@v2
@@ -425,7 +425,7 @@ jobs:
             |[taverna maven plugin](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-maven-plugin|${{ needs.metadata.outputs.release_version }}|
           append_body: true
 
-      - name: "Add Docker URL to Release"
+      - name: "Add Container URLs to Release"
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.metadata.outputs.release_name }}
