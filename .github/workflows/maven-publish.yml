@@ -33,6 +33,7 @@ jobs:
           echo "release_tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
           echo "prerelease=false" >> "$GITHUB_OUTPUT"
 
+    # these outputs simply mush together the two variables because, depending on the path, one will be empty
     outputs:
       image_tag: ${{ steps.snapshot_metadata.outputs.image_tag }}${{ steps.release_metadata.outputs.image_tag }}
       release_version: ${{ steps.snapshot_metadata.outputs.release_version }}${{ steps.release_metadata.outputs.release_version }}
@@ -53,6 +54,15 @@ jobs:
           prerelease: ${{ needs.metadata.outputs.prerelease }}
           name: ${{ needs.metadata.outputs.release_name }}
           tag_name: ${{ needs.metadata.outputs.release_tag }}
+
+      # use this step to overwrite body for links at the end
+      - name: "Set pre-release body"
+        if: contains(github.ref, 'refs/heads/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ needs.metadata.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
+          body: "[PRERELEASE]"
 
   test:
     name: "Run Unit Tests"
@@ -89,7 +99,7 @@ jobs:
         run: mvn -B test
 
   build:
-    name: "Build Java Executable"
+    name: "Build Java Command Executable"
     runs-on: ubuntu-latest
     needs: [metadata, test]
     permissions:
@@ -121,7 +131,7 @@ jobs:
         run: mvn -B versions:set -DnewVersion="${{ needs.metadata.outputs.release_version }}"
 
       - name: Build with Maven
-        run: mvn -B -DskipTests package
+        run: mvn -B -DskipTests -Dbuild=cli package
 
       - name: 'Upload Executable JAR to Artifact Cache'
         uses: actions/upload-artifact@v4
@@ -283,6 +293,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.manage_release.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
           files: |
             artifacts/*/*
             checksum.txt
@@ -391,6 +402,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.metadata.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
             ##Attestations:
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
@@ -401,6 +413,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.metadata.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
             ##Maven Artifacts:
             |module|url|
@@ -414,6 +427,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.metadata.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
             ##Docker Image:
             https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }}
