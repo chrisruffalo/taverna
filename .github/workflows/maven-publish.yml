@@ -18,7 +18,7 @@ jobs:
         if: contains(github.ref, 'refs/heads/')
         run: |
           RELEASE=$(echo ${{ github.ref }} | cut -d- -f2 )
-          echo "image_tag=${RELEASE}"
+          echo "image_tag=${RELEASE}" >> $GITHUB_OUTPUT
           echo "release_version=${RELEASE}-SNAPSHOT" >> $GITHUB_OUTPUT
 
       - name: Capture branch info
