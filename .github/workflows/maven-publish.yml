@@ -178,21 +178,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # windows: install msbuild tools for native compile
-      - name: Add msbuild to PATH
-        if: contains(matrix.os, 'windows')
-        uses: microsoft/setup-msbuild@v1.0.2
-
-      # windows: ensure that dev tools are added to path
-      - name: Add toolkit to path
-        if: contains(matrix.os, 'windows')
-        uses: ilammy/msvc-dev-cmd@v1
-
-      # ubuntu: install packages needed for graalvm native compile
-      - name: Install additional packages
-        if: contains(matrix.os, 'ubuntu')
-        run: sudo apt-get install -y zlib1g-dev
-
       - uses: actions/checkout@v4
 
       - name: Set release version
@@ -340,14 +325,15 @@ jobs:
           context: taverna-cmd
           file: taverna-cmd/src/main/container/Dockerfile
           push: true
+          provenance: true
           tags: | 
             docker.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
             quay.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
           build-args: |
-            INPUT_BINARY="taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64"
-            VERSION="${{ needs.metadata.outputs.image_tag }}"
-            FULL_VERSION="${{ needs.metadata.outputs.release_version }}"
-            GIT_HASH="${{ github.sha }}"
+            INPUT_BINARY=taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
+            VERSION=${{ needs.metadata.outputs.image_tag }}
+            FULL_VERSION=${{ needs.metadata.outputs.release_version }}
+            GIT_HASH=${{ github.sha }}
 
       - name: Attest Container Image @ Docker
         uses: actions/attest-build-provenance@v2
