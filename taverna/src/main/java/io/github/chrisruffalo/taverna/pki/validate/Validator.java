@@ -55,14 +55,25 @@ public class Validator {
                      domainPort = Result.of(split[1]).map(Integer::parseInt).getOrFailsafe(SSL_PORT);
                  }
                  final DomainLoaderConfig domainLoaderConfig = new DomainLoaderConfig(domainName, domainPort);
-                 final List<Cert> fromDomain = domainLoader.load(domainLoaderConfig);
-                 logger.infof("certificate chain from %s%s:", domainName, domainPort != SSL_PORT ? String.format("[%d]", domainPort) : "");
-                 final Cert domainFirstCert = fromDomain.getFirst();
-                 boolean hostnameVerified = HostnameVerifier.verifyHostname(domainName, domainFirstCert.getAlternateNames());
-                 if (hostnameVerified) {
-                     logger.infof("\thostname '%s' verified", domainName);
+                 final Result<List<Cert>> fromDomainResult = domainLoader.load(domainLoaderConfig);
+                 List<Cert> fromDomain = List.of();
+                 final String domainPortFormatted = domainPort != SSL_PORT ? String.format("[%d]", domainPort) : "";
+                 if (fromDomainResult.isError()) {
+                     logger.errorf("could not get certificates from %s:%s:", domainName, domainPortFormatted);
+                     final Exception error = fromDomainResult.error();
+                     logger.errorf("\terror: %s", error.getMessage());
+                 } else if (fromDomainResult.isEmpty()) {
+                     logger.infof("no certificates loaded from %s:%s:");
                  } else {
-                     logger.infof("\thostname not verified: [%s] against [%s]", domainName, String.join(", ", domainFirstCert.getAlternateNames()));
+                     logger.infof("certificate chain from %s%s:", domainName, domainPortFormatted);
+                     fromDomain = fromDomainResult.get();
+                     final Cert domainFirstCert = fromDomain.getFirst();
+                     boolean hostnameVerified = HostnameVerifier.verifyHostname(domainName, domainFirstCert.getAlternateNames());
+                     if (hostnameVerified) {
+                         logger.infof("\thostname '%s' verified", domainName);
+                     } else {
+                         logger.infof("\thostname not verified: [%s] against [%s]", domainName, String.join(", ", domainFirstCert.getAlternateNames()));
+                     }
                  }
 
                  final AtomicBoolean alreadyAdded = new AtomicBoolean(false);

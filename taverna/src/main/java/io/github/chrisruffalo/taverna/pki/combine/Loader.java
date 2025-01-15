@@ -1,5 +1,6 @@
 package io.github.chrisruffalo.taverna.pki.combine;
 
+import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.log.OutputLogger;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.model.StoreType;
@@ -14,6 +15,7 @@ import io.github.chrisruffalo.taverna.pki.store.TrustStoreLoaderConfig;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class Loader {
 
             Path asPath = Paths.get(source);
             String storePass = options.getStorePass();
-            List<Cert> loaded = List.of();
+            List<Cert> loaded = new ArrayList<>(0);
 
             // there is a store pass being offered as part of the path
             if (source.contains(":")) {
@@ -46,23 +48,33 @@ public class Loader {
 
             if (Files.isDirectory(asPath)) {
                 final DirLoaderConfig dirLoaderConfig = new DirLoaderConfig(asPath);
-                loaded = dirLoader.load(dirLoaderConfig);
-                logger.infof("loaded %s certificates from directory %s", loaded.size(), asPath);
-                certs.addAll(loaded);
+                Result<List<Cert>> dirResult = dirLoader.load(dirLoaderConfig);
+                if (dirResult.isEmpty()) {
+                    logger.infof("no certificates loaded from directory %s", asPath);
+                } else if(dirResult.isError()) {
+                    logger.errorf("error while loading certificates from directory %s: %s", asPath, dirResult.error().getMessage());
+                } else {
+                    loaded.addAll(dirResult.get());
+                    logger.infof("loaded %s certificates from directory %s", loaded.size(), asPath);
+                    certs.addAll(loaded);
+                }
             }
 
             if (Files.isRegularFile(asPath)) {
                 FileLoaderConfig fileLoaderConfig = new FileLoaderConfig(asPath);
-                loaded = fileLoader.load(fileLoaderConfig);
-                if (!loaded.isEmpty()) {
+                Result<List<Cert>> fileLoaderResult = fileLoader.load(fileLoaderConfig);
+
+                if (!fileLoaderResult.isEmpty()) {
+                    loaded.addAll(fileLoaderResult.get());
                     logger.infof("loaded %s certificates from file %s", loaded.size(), asPath);
                 } else {
                     // attempt to load as trust store
                     for (StoreType storeType : StoreType.values()) {
                         final String storeTypeName = storeType.name().toLowerCase();
                         final TrustStoreLoaderConfig trustStoreLoaderConfig = new TrustStoreLoaderConfig(asPath, storeTypeName, storePass);
-                        loaded = trustStoreLoader.load(trustStoreLoaderConfig);
-                        if (!loaded.isEmpty()) {
+                        Result<List<Cert>> keyStoreResult = trustStoreLoader.load(trustStoreLoaderConfig);
+                        if (!keyStoreResult.isEmpty()) {
+                            loaded.addAll(keyStoreResult.get());
                             logger.infof("loaded %s certificates from truststore %s", loaded.size(), asPath);
                             break;
                         }

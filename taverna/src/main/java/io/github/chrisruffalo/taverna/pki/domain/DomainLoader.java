@@ -14,17 +14,12 @@ import java.util.List;
 public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
 
     @Override
-    public List<Cert> load(DomainLoaderConfig configuration) {
+    public Result<List<Cert>> load(DomainLoaderConfig configuration) {
 
         final String domain = configuration.domainName();
         final int port = configuration.port();
 
-        final Result<List<Cert>> serverCertsResult = loadCert(domain, port);
-        if (serverCertsResult.isEmpty()) {
-            return List.of();
-        }
-
-        return serverCertsResult.get();
+        return loadCert(domain, port);
     }
 
     private Result<List<Cert>> loadCert(String domain, int port) {
@@ -59,10 +54,7 @@ public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
                         .map(X509Certificate.class::cast)
                         .map(Cert::fromX509)
                         .toList();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
             }
-            return List.of();
         });
     }
 }

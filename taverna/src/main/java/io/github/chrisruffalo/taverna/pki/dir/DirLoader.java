@@ -1,5 +1,6 @@
 package io.github.chrisruffalo.taverna.pki.dir;
 
+import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.pki.BaseLoader;
 import io.github.chrisruffalo.taverna.pki.file.FileLoader;
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 public class DirLoader extends BaseLoader<DirLoaderConfig> {
 
     @Override
-    public List<Cert> load(DirLoaderConfig configuration) {
+    public Result<List<Cert>> load(DirLoaderConfig configuration) {
         final Path path = configuration.dir();
         if (path == null || !Files.isDirectory(path)) {
-            return List.of();
+            return Result.empty();
         }
 
         final Set<Path> toLoad = new HashSet<>();
@@ -53,15 +54,16 @@ public class DirLoader extends BaseLoader<DirLoaderConfig> {
                 }
             });
         } catch (Exception e) {
-            // nothing to do
+            return Result.of(null, e);
         }
 
         final FileLoader loader = new FileLoader();
-        return toLoad.stream()
+        return Result.from(() -> toLoad.stream()
                 .flatMap(loading -> {
                     final FileLoaderConfig loaderConfig = new FileLoaderConfig(loading);
-                    return loader.load(loaderConfig).stream();
-                }).collect(Collectors.toList());
+                    return loader.load(loaderConfig).getOrFailsafe(List.of()).stream();
+                })
+                .collect(Collectors.toList()));
     }
 
 }

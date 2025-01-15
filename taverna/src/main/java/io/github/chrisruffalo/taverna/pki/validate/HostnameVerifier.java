@@ -6,6 +6,7 @@ public class HostnameVerifier {
 
     /**
      * Verifies the hostname against a list of SANs.
+     *
      * @param hostname The hostname to verify.
      * @param subjectAltNames The list of SANs from the certificate.
      * @return true if the hostname matches any SAN, false otherwise.
@@ -25,7 +26,9 @@ public class HostnameVerifier {
     }
 
     /**
-     * Checks if the hostname matches a specific SAN entry.
+     * Checks if the hostname matches a specific SAN entry. This code
+     * is super super super basic.
+     *
      * @param hostname The hostname to check.
      * @param san The SAN entry to compare against.
      * @return true if they match, false otherwise.

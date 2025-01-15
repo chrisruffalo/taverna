@@ -14,20 +14,22 @@ import java.util.List;
 public class FileLoader extends BaseLoader<FileLoaderConfig> {
 
     @Override
-    public List<Cert> load(FileLoaderConfig configuration) {
+    public Result<List<Cert>> load(FileLoaderConfig configuration) {
         final Path path = configuration.path();
         if (path == null || !Files.isRegularFile(path)) {
-            return List.of();
+            return Result.empty();
         }
 
         final Result<CertificateFactory> factoryResult = Result.from(() -> CertificateFactory.getInstance("X.509"));
-        if (factoryResult.isEmpty()) {
-            return List.of();
+        if (factoryResult.isError()) {
+            return Result.of(null, factoryResult.error());
+        } else if (factoryResult.isEmpty()) {
+            return Result.empty();
         }
 
         final CertificateFactory cf = factoryResult.get();
 
-        return loadCertificates(cf, configuration.path()).getOrFailsafe(List.of());
+        return loadCertificates(cf, configuration.path());
     }
 
     private Result<List<Cert>> loadCertificates(CertificateFactory cf, final Path path) {
