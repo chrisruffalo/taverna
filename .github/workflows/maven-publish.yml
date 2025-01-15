@@ -41,8 +41,11 @@ jobs:
       prerelease: ${{ steps.snapshot_metadata.outputs.prerelease }}${{ steps.release_metadata.outputs.prerelease }}
 
   manage_release:
+    name: "Manage Release Instance"
     needs: [metadata]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: "Ensure Release"
         uses: softprops/action-gh-release@v2
