@@ -213,6 +213,9 @@ jobs:
           distribution: 'mandrel'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+
+      - uses: actions/checkout@v4
+
       - name: Cache local Maven repository
         uses: actions/cache@v4
         with:
@@ -220,17 +223,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      # windows: install msbuild tools for native compile
-      - name: Add msbuild to PATH
-        if: contains(matrix.os, 'windows')
-        uses: microsoft/setup-msbuild@v1.0.2
-
-      # ubuntu: install packages needed for graalvm native compile
-      - name: Install additional packages
-        run: sudo apt-get install -y zlib1g-dev
-
-      - uses: actions/checkout@v4
 
       - name: Set release version
         run: mvn -B versions:set -DnewVersion="${{ needs.metadata.outputs.release_version }}"
