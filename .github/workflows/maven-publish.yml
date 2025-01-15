@@ -15,17 +15,23 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: "Capture versioning metadata (snapshot)"
+        id: snapshot_metadata
         if: contains(github.ref, 'refs/heads/')
         run: |
           RELEASE=$(echo "${{ github.ref }}" | cut -d- -f2 )
-          echo "image_tag=${RELEASE}" >> $GITHUB_OUTPUT
-          echo "release_version=${RELEASE}-SNAPSHOT" >> $GITHUB_OUTPUT
+          echo "image_tag=${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "release_version=${RELEASE}-SNAPSHOT" >> "$GITHUB_OUTPUT"
 
       - name: "Capture versioning metadata (release)"
+        id: release_metadata
         if: "!contains(github.ref, 'refs/heads/')"
         run: |
-          echo "image_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-          echo "release_version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          echo "image_tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          echo "release_version=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+
+    outputs:
+      image_tag: ${{ steps.snapshot_metadata.outputs.image_tag }}${{ steps.release_metadata.outputs.image_tag }}
+      release_version: ${{ steps.snapshot_metadata.outputs.release_version }}${{ steps.release_metadata.outputs.release_version }}
 
   test:
     name: "Run Unit Tests"
