@@ -169,7 +169,7 @@ jobs:
 
       - name: Build with Maven
         run: |
-          mvn -B --update-snapshots -Dbuild=cli -DskipTests -Dnative package
+          mvn -B -Dbuild=cli -DskipTests -Dnative package
           mv taverna-cmd/target/taverna-cmd${{ matrix.target-suffix }} taverna-cmd/target/taverna-cmd-${{ needs.metadata.outputs.release_version }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
@@ -221,11 +221,13 @@ jobs:
 
       - name: Build with Maven
         run: |
-          mvn -B --update-snapshots -Dbuild=operator -DskipTests -Drevision="${{ github.event.release.tag_name }}" -DquarkusNative package
+          mvn -B -Dbuild=operator -DskipTests -Drevision="${{ github.event.release.tag_name }}" -DquarkusNative package
 
   update_release:
     name: "Add Artifacts to Github Release"
     if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
+    outputs:
+      artifact_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
     runs-on: ubuntu-latest
 
     needs: [metadata, build, build_native]
@@ -276,6 +278,7 @@ jobs:
       id-token: write
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
+      image_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -309,7 +312,6 @@ jobs:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-
 
   release_to_central:
     name: "Release to Maven Central"
@@ -358,12 +360,21 @@ jobs:
   update_release_with_links:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
-    needs: [metadata, release_to_central,update_release,container_image]
+    needs: [metadata,release_to_central,update_release,update_release,container_image]
     if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     permissions:
       contents: write
       id-token: write
     steps:
+      - name: "Add Attestation URLs"
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ##Attestations:
+            [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
+            [Binary Docker Image](${{ needs.container_image.outputs.image_attestation_url }})
+          append_body: true
+
       - name: "Add Maven URLs to Release"
         uses: softprops/action-gh-release@v2
         with:
