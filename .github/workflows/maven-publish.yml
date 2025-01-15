@@ -305,6 +305,9 @@ jobs:
           name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
           path: taverna-cmd/target/
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -325,7 +328,7 @@ jobs:
           context: taverna-cmd
           file: taverna-cmd/src/main/container/Dockerfile
           push: true
-          provenance: true
+          provenance: mode=max
           tags: | 
             docker.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
             quay.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
@@ -338,7 +341,6 @@ jobs:
       - name: Attest Container Image @ Docker
         uses: actions/attest-build-provenance@v2
         id: attest
-        if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
         with:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
@@ -347,7 +349,6 @@ jobs:
       - name: Attest Container Image @ Quay
         uses: actions/attest-build-provenance@v2
         id: attest_quay
-        if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
         with:
           subject-name: quay.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
