@@ -14,23 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Capture branch info
+      - name: "Capture versioning metadata (snapshot)"
         if: contains(github.ref, 'refs/heads/')
         run: |
-          RELEASE=$(echo ${{ github.ref }} | cut -d- -f2 )
+          RELEASE=$(echo "${{ github.ref }}" | cut -d- -f2 )
           echo "image_tag=${RELEASE}" >> $GITHUB_OUTPUT
           echo "release_version=${RELEASE}-SNAPSHOT" >> $GITHUB_OUTPUT
 
-      - name: Capture branch info
+      - name: "Capture versioning metadata (release)"
         if: "!contains(github.ref, 'refs/heads/')"
         run: |
           echo "image_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           echo "release_version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-
-
-    outputs:
-      image_tag: ${{ steps.metadata.outputs.image_tag }}
-      release_version: ${{ steps.metadata.outputs.release_version }}
 
   test:
     name: "Run Unit Tests"
