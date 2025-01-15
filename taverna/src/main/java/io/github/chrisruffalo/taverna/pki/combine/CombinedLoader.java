@@ -19,7 +19,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Loader {
+/**
+ * A single-stop loader that can load from all sources.
+ */
+public class CombinedLoader {
 
     public List<Cert> load(Options options, OutputLogger logger) {
         // load trusts

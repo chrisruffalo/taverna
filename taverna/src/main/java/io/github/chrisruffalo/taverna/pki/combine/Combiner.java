@@ -6,11 +6,18 @@ import io.github.chrisruffalo.taverna.model.Cert;
 import java.security.KeyStore;
 import java.util.Collection;
 
+/**
+ * Given a set of certificate objects this combiner
+ * will create a single key store with all the certificates
+ * inside it.
+ */
 public class Combiner {
+
+    private static final String DEFAULT_TYPE = "PKCS12";
 
     public static KeyStore combineTrust(Collection<Cert> certs) {
         return Result.from(() -> {
-            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            final KeyStore keyStore = KeyStore.getInstance(DEFAULT_TYPE);
             keyStore.load(null, null);
 
             for(Cert cert : certs) {

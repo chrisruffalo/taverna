@@ -1,5 +1,8 @@
 package io.github.chrisruffalo.taverna.opt;
 
+/**
+ * Defines strategies for how gaps in trust should be closed (trust chain completion).
+ */
 public enum CompletionMode {
 
     /**

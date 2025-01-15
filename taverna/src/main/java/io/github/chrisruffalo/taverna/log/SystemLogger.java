@@ -1,5 +1,9 @@
 package io.github.chrisruffalo.taverna.log;
 
+/**
+ * Easy implementation of the output logger built on
+ * System.out/System.err.
+ */
 public class SystemLogger implements OutputLogger {
 
     @Override

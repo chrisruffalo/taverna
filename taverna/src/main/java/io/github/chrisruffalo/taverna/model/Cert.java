@@ -8,7 +8,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
- * basic details of a cert regardless of source
+ * Basic details of a cert regardless of source
  */
 public class Cert {
 

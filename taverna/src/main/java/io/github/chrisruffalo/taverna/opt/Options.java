@@ -1,6 +1,5 @@
 package io.github.chrisruffalo.taverna.opt;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 

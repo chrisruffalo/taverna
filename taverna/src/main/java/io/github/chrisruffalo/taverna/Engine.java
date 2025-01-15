@@ -6,7 +6,7 @@ import io.github.chrisruffalo.taverna.log.OutputLogger;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.opt.Options;
 import io.github.chrisruffalo.taverna.pki.combine.Combiner;
-import io.github.chrisruffalo.taverna.pki.combine.Loader;
+import io.github.chrisruffalo.taverna.pki.combine.CombinedLoader;
 import io.github.chrisruffalo.taverna.pki.validate.ValidationStatus;
 import io.github.chrisruffalo.taverna.pki.validate.Validator;
 
@@ -51,7 +51,7 @@ public class Engine {
             }
         });
 
-        final Loader combinedLoader = new Loader();
+        final CombinedLoader combinedLoader = new CombinedLoader();
         final List<Cert> certs = combinedLoader.load(options, logger);
 
         // stop here if no domains were added (can't simplify, maybe in the future we want to allow output)

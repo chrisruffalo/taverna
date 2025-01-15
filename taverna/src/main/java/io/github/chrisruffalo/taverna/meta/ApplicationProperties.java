@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Provide information/meta-information about the application/release
+ */
 public class ApplicationProperties {
 
     private enum Singleton {
