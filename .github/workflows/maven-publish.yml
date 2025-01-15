@@ -417,7 +417,7 @@ jobs:
             |link|pull command|
             |----|----|
             |[Quay](https://quay.io/repository/chrisruffalo/taverna/manifest/${{ needs.container_image.outputs.image_digest }}?tab=layers)|`podman pull quay.io/chrisruffalo/taverna@${{ needs.container_image.outputs.image_digest }}`|
-            |[Docker(https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})|`podman pull docker.io/chrisruffalo/taverna@${{ needs.container_image.outputs.image_digest }}`|
+            |[Docker](https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})|`podman pull docker.io/chrisruffalo/taverna@${{ needs.container_image.outputs.image_digest }}`|
 
             ## Attestations
             
