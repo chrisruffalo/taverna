@@ -15,6 +15,7 @@
     <description>CLI command module</description>
 
     <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <dependencies>

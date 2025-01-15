@@ -195,8 +195,6 @@ jobs:
     name: "Build and Publish Container Image"
     runs-on: ubuntu-latest
     needs: [build_native]
-    outputs:
-      image_digest: ${{ steps.push.outputs.digest }}
     permissions:
       packages: write
       contents: read
@@ -226,6 +224,9 @@ jobs:
           push: true
           tags: docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
           build-args: INPUT_BINARY=taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
+
+      - name: Set output
+        run: echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_OUTPUT
 
       - name: Attest Docker Image
         uses: actions/attest-build-provenance@v2
@@ -275,7 +276,7 @@ jobs:
         run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
       - name: Publish to Maven Central
-        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests -s /home/runner/.m2/settings.xml -Drevision=${{ github.event.release.tag_name }} clean deploy
+        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests -Drevision=${{ github.event.release.tag_name }} clean deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSS_PASSWORD }}
@@ -284,7 +285,7 @@ jobs:
   update_release_with_links:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
-    needs: [release_to_central,container_image]
+    needs: [release_to_central,update_release,container_image]
     steps:
       - name: "Add Maven URLs to Release"
         uses: softprops/action-gh-release@v2
@@ -303,5 +304,5 @@ jobs:
         with:
           body: |
             ##Docker Image
-            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.image_digest }}
+            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.IMAGE_DIGEST }}
           append_body: true
