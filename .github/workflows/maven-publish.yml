@@ -406,20 +406,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: "Add Attestation URLs"
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ needs.metadata.outputs.release_name }}
-          tag_name: ${{ needs.metadata.outputs.release_tag }}
-          body: |
-            ## Attestations
-            
-            [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
-            [Docker Hub Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.docker_attest_id }})
-            [Quay Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.quay_attest_id }})
-          append_body: true
-
-      - name: "Add Maven URLs to Release"
+      - name: "Add Release Artifact Metadata to Release Page"
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.metadata.outputs.release_name }}
@@ -432,15 +419,17 @@ jobs:
             |[taverna](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna:${{ needs.metadata.outputs.release_version }}|
             |[taverna-cmd](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna-cmd:${{ needs.metadata.outputs.release_version }}|
             |[taverna-maven-plugin](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna-maven-plugin:${{ needs.metadata.outputs.release_version }}|
-          append_body: true
+  
+            ## Container Images
+            
+            |link|pull|
+            |----|----|
+            |[Docker Hub](https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})|`podman pull docker.io/chrisruffalo/taverna:@${{ needs.container_image.outputs.image_digest }}`|
+            |[Quay](https://quay.io/repository/chrisruffalo/taverna/manifest/${{ needs.container_image.outputs.image_digest }}?tab=layers)|`podman pull quay.io/chrisruffalo/taverna:@${{ needs.container_image.outputs.image_digest }}`|
 
-      - name: "Add Container URLs to Release"
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ needs.metadata.outputs.release_name }}
-          tag_name: ${{ needs.metadata.outputs.release_tag }}
-          body: |
-            ## Container Image
-            [Docker Hub](https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})
-            [Quay](https://quay.io/repository/chrisruffalo/taverna/manifest/${{ needs.container_image.outputs.image_digest }}?tab=layers)
+            ## Attestations
+            
+            [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
+            [Docker Hub Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.docker_attest_id }})
+            [Quay Image](https://github.com/chrisruffalo/taverna/attestations/${{ needs.container_image.outputs.quay_attest_id }})
           append_body: true
