@@ -427,11 +427,11 @@ jobs:
           body: |
             ## Maven Artifacts
             
-            |module|group|artifactId|version|
-            |------|-----|----------|-------|
-            |[taverna](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna|${{ needs.metadata.outputs.release_version }}|
-            |[taverna cmd](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-cmd|${{ needs.metadata.outputs.release_version }}|
-            |[taverna maven plugin](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-maven-plugin|${{ needs.metadata.outputs.release_version }}|
+            |module|group|artifactId|version|gav|
+            |------|-----|----------|-------|---|
+            |[taverna](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna:${{ needs.metadata.outputs.release_version }}|
+            |[taverna cmd](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-cmd|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna-cmd:${{ needs.metadata.outputs.release_version }}|
+            |[taverna maven plugin](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-maven-plugin|${{ needs.metadata.outputs.release_version }}|io.github.chrisruffalo:taverna-maven-plugin:${{ needs.metadata.outputs.release_version }}|
           append_body: true
 
       - name: "Add Container URLs to Release"
