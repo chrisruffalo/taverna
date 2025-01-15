@@ -70,7 +70,7 @@ jobs:
   build:
     name: "Build Java Executable"
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [metadata, test]
     permissions:
       contents: read
       packages: write
@@ -113,7 +113,7 @@ jobs:
     name: "Build Native Executable Command"
     # build on all target os
     runs-on: ${{ matrix.os }}
-    needs: [test]
+    needs: [metadata, test]
     strategy:
       matrix:
         include:
@@ -183,7 +183,7 @@ jobs:
     name: "Build Native Operator"
     # build on all target os
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [metadata, test]
 
     permissions:
       contents: read
@@ -228,7 +228,7 @@ jobs:
     if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     runs-on: ubuntu-latest
 
-    needs: [build, build_native]
+    needs: [metadata, build, build_native]
 
     permissions:
       contents: write
@@ -268,7 +268,7 @@ jobs:
   container_image:
     name: "Build and Publish Container Image"
     runs-on: ubuntu-latest
-    needs: [build_native]
+    needs: [metadata, build_native]
     permissions:
       packages: write
       contents: read
@@ -315,7 +315,7 @@ jobs:
     name: "Release to Maven Central"
     runs-on: ubuntu-latest
     # waits for all builds to complete so artifacts are all verified before trying to release
-    needs: [test, build, build_native]
+    needs: [metadata, test, build, build_native]
     permissions:
       contents: read
       packages: write
@@ -358,7 +358,7 @@ jobs:
   update_release_with_links:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
-    needs: [release_to_central,update_release,container_image]
+    needs: [metadata, release_to_central,update_release,container_image]
     if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     permissions:
       contents: write
@@ -371,9 +371,9 @@ jobs:
             ##Maven Artifacts:
               |module|url|
               |------|---|
-              |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ github.event.release.tag_name }}/overview|
-              |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ github.event.release.tag_name }}/overview|
-              |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ github.event.release.tag_name }}/overview|
+              |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview|
+              |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview|
+              |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview|
           append_body: true
 
       - name: "Add Docker URL to Release"
@@ -381,5 +381,5 @@ jobs:
         with:
           body: |
             ##Docker Image
-            https://hub.docker.com/layers/chrisruffalo/taverna/${{ github.event.release.tag_name }}/images/${{ needs.container_image.outputs.image_digest }}
+            https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }}
           append_body: true
