@@ -12,8 +12,6 @@ jobs:
     name: "Calculate Metadata"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: "Capture versioning metadata (snapshot)"
         id: snapshot_metadata
         if: contains(github.ref, 'refs/heads/')
@@ -21,6 +19,9 @@ jobs:
           RELEASE=$(echo "${{ github.ref }}" | cut -d- -f2 )
           echo "image_tag=${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "release_version=${RELEASE}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "release_name=Prelease ${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=pre-${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=true" >> "$GITHUB_OUTPUT"
 
       - name: "Capture versioning metadata (release)"
         id: release_metadata
@@ -28,15 +29,32 @@ jobs:
         run: |
           echo "image_tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
           echo "release_version=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${{ github.event.release.name }}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=false" >> "$GITHUB_OUTPUT"
 
     outputs:
       image_tag: ${{ steps.snapshot_metadata.outputs.image_tag }}${{ steps.release_metadata.outputs.image_tag }}
       release_version: ${{ steps.snapshot_metadata.outputs.release_version }}${{ steps.release_metadata.outputs.release_version }}
+      release_name: ${{ steps.snapshot_metadata.outputs.release_name }}${{ steps.release_metadata.outputs.release_name }}
+      release_tag: ${{ steps.snapshot_metadata.outputs.release_tag }}${{ steps.release_metadata.outputs.release_tag }}
+      prerelease: ${{ steps.snapshot_metadata.outputs.prerelease }}${{ steps.release_metadata.outputs.prerelease }}
+
+  manage_release:
+    needs: [metadata]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Ensure Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ needs.metadata.outputs.prerelease }}
+          name: ${{ needs.metadata.outputs.release_name }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
 
   test:
     name: "Run Unit Tests"
     runs-on: ubuntu-latest
-    needs: [metadata]
+    needs: [metadata,manage_release]
     permissions:
       contents: read
 
@@ -230,7 +248,7 @@ jobs:
       artifact_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
     runs-on: ubuntu-latest
 
-    needs: [metadata, build, build_native]
+    needs: [metadata, manage_release, build, build_native]
 
     permissions:
       contents: write
@@ -262,6 +280,7 @@ jobs:
       - name: "Upload Artifact to Release"
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ needs.manage_release.outputs.release_name }}
           files: |
             artifacts/*/*
             checksum.txt
@@ -363,7 +382,6 @@ jobs:
     name: "Update/Finalize Release"
     runs-on: ubuntu-latest
     needs: [metadata,release_to_central,update_release,update_release,container_image]
-    if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
     permissions:
       contents: write
       id-token: write
@@ -371,6 +389,7 @@ jobs:
       - name: "Add Attestation URLs"
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ needs.metadata.outputs.release_name }}
           body: |
             ##Attestations:
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
@@ -380,6 +399,7 @@ jobs:
       - name: "Add Maven URLs to Release"
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ needs.metadata.outputs.release_name }}
           body: |
             ##Maven Artifacts:
               |module|url|
@@ -392,6 +412,7 @@ jobs:
       - name: "Add Docker URL to Release"
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ needs.metadata.outputs.release_name }}
           body: |
             ##Docker Image
             https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }}
