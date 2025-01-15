@@ -1,0 +1,36 @@
+[
+  {
+    "name":"com.beust.jcommander.converters.DefaultListConverter",
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"com.beust.jcommander.converters.CommaParameterSplitter",
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"com.beust.jcommander.converters.BooleanConverter",
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"com.beust.jcommander.converters.PathConverter",
+    "allDeclaredConstructors":true
+  },
+  {
+    "name":"com.beust.jcommander.validators.NoValidator",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"com.beust.jcommander.validators.NoValueValidator",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"io.github.chrisruffalo.taverna.cmd.opt.CliOptions",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  },
+  {
+    "name":"io.github.chrisruffalo.taverna.opt.CompletionMode",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
+  }
+]

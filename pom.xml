@@ -5,149 +5,253 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.chrisruffalo</groupId>
-    <artifactId>taverna</artifactId>
+    <artifactId>taverna-parent</artifactId>
     <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <name>Taverna Root</name>
+    <description>Root project for related taverna modules</description>
+
+    <url>https://github.com/chrisruffalo/taverna</url>
+
+    <scm>
+        <url>git@github.com:chrisruffalo/taverna.git</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>chris.ruffalo</id>
+            <name>Chris Ruffalo</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <modules>
+        <module>taverna</module>
+        <module>taverna-cmd</module>
+        <module>taverna-maven-plugin</module>
+    </modules>
 
     <properties>
-        <revision>1.0-SNAPSHOT</revision>
+        <revision>1.3-SNAPSHOT</revision>
 
         <!-- maven/build options -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- dependency versions -->
         <version.jcommander>2.0</version.jcommander>
-        <version.httpclient-5>5.4</version.httpclient-5>
         <version.resultify>1.0</version.resultify>
+
+        <version.maven-plugin-tools>3.13.1</version.maven-plugin-tools>
+        <version.maven-plugin-api>3.0</version.maven-plugin-api>
 
         <!-- plugin versions -->
         <version.surefire-plugin>3.5.2</version.surefire-plugin>
+        <version.failsafe-plugin>${version.surefire-plugin}</version.failsafe-plugin>
         <version.native-maven-plugin>0.10.4</version.native-maven-plugin>
-
+        <version.maven-shade-plugin>3.6.0</version.maven-shade-plugin>
+        <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
+        <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
+        <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
+        <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
+        <version.central-publishing-maven-plugin>0.6.0</version.central-publishing-maven-plugin>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.jcommander</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>${version.jcommander}</version>
-        </dependency>
 
-        <dependency>
-            <groupId>io.github.chrisruffalo</groupId>
-            <artifactId>resultify</artifactId>
-            <version>${version.resultify}</version>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <!-- internal dependencies -->
+            <dependency>
+                <groupId>io.github.chrisruffalo</groupId>
+                <artifactId>taverna</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.11.4</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <dependency>
+                <groupId>org.jcommander</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${version.jcommander}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.chrisruffalo</groupId>
+                <artifactId>resultify</artifactId>
+                <version>${version.resultify}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>5.11.4</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- maven api dependencies -->
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${version.maven-plugin-api}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>${version.maven-plugin-tools}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>application.properties</exclude>
-                </excludes>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>application.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${version.maven-shade-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
+                    <version>${version.maven-compiler-plugin}</version>
                     <configuration>
                         <release>21</release>
                     </configuration>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${version.surefire-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${version.failsafe-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>${version.native-maven-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${version.maven-gpg-plugin}</version>
+                    <configuration>
+                        <gpgArguments>
+                            <arg>--pinentry-mode</arg>
+                            <arg>loopback</arg>
+                        </gpgArguments>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${version.maven-javadoc-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${version.maven-source-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${version.central-publishing-maven-plugin}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>executable</shadedClassifierName>
-                            <transformers>
-                                <!-- handle service files, just in case -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <!-- handle licenses -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
-                                <!-- merge/handle notices -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-                                    <addHeader>false</addHeader>
-                                </transformer>
-                                <!-- don't include child manfiests -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                    <resource>MANIFEST.MF</resource>
-                                </transformer>
-                                <!-- create output manifest file -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.github.chrisruffalo.taverna.cmd.Entrypoint</mainClass>
-                                    <manifestEntries>
-                                        <Specification-Title>${project.artifactId}</Specification-Title>
-                                        <Specification-Version>${project.version}</Specification-Version>
-                                        <Implementation-Title>${project.artifactId}</Implementation-Title>
-                                        <Implementation-Version>${project.version}</Implementation-Version>
-                                        <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 
     <profiles>
         <profile>
-            <id>native</id>
+            <id>prepare-publish</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
                 <property>
-                    <name>native</name>
+                    <name>preparePublish</name>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>publish-to-central</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>publishCentral</name>
                 </property>
             </activation>
             <build>
                 <plugins>
-                    <!-- invoke graalvm build -->
                     <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <version>${version.native-maven-plugin}</version>
-                        <executions>
-                            <execution>
-                                <id>build-native</id>
-                                <goals>
-                                    <goal>compile-no-fork</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                        </executions>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

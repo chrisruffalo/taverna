@@ -26,15 +26,19 @@ contain all the trust expected to verify the given domains. Finally, it can find
 certificates advertised by the domains.
 
 ## Building
-Taverna uses a maven-based Java build. Taverna requires Java 21 and Maven 3.9 to build.
+Taverna uses a maven-based Java build. Taverna requires Java 21 and Maven 3.9 to build. Building the parent
+project (the most common way to do it) builds all the projects and puts binaries in the respective module folders.
 ```shell
 []$ mvn clean install
 ```
+The output binaries for the CLI application would be in `taverna-cmd/target`.
+
 If a Graal-compatible JVM is installed (Graal, GraalCE, Mandrel, etc) a native binary can be built for the
 current platform.
 ```shell
 []$ mvn clean install -Dnative
 ```
+The output native binaries for the CLI application would be in `taverna-cmd/target`.
 
 ## Running
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
