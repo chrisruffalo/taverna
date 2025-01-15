@@ -239,7 +239,8 @@ jobs:
   release_to_central:
     name: "Release to Maven Central"
     runs-on: ubuntu-latest
-    needs: [test]
+    # waits for all builds to complete so artifacts are all verified before trying to release
+    needs: [test, build, build_native]
     permissions:
       contents: read
       packages: write
@@ -274,7 +275,7 @@ jobs:
         run: mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
       - name: Publish to Maven Central
-        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests -Drevision=${{ github.event.release.tag_name }} clean deploy
+        run: mvn -B -DpreparePublish -DpublishCentral -DskipTests -s /home/runner/.m2/settings.xml -Drevision=${{ github.event.release.tag_name }} clean deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSS_PASSWORD }}
