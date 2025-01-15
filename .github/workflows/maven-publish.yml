@@ -17,15 +17,19 @@ jobs:
       - name: Capture branch info
         if: contains(github.ref, 'refs/heads/')
         run: |
-          echo "release_version=${{ github.event.release.tag_name }}-SNAPSHOT" >> $GITHUB_OUTPUT
+          RELEASE=$(echo ${{ github.ref }} | cut -d- -f2 )
+          echo "image_tag=${RELEASE}"
+          echo "release_version=${RELEASE}-SNAPSHOT" >> $GITHUB_OUTPUT
 
       - name: Capture branch info
         if: "!contains(github.ref, 'refs/heads/')"
         run: |
+          echo "image_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           echo "release_version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
 
     outputs:
+      image_tag: ${{ steps.metadata.outputs.image_tag }}
       release_version: ${{ steps.metadata.outputs.release_version }}
 
   test:
@@ -277,7 +281,7 @@ jobs:
       - name: 'Download Artifact from Cache'
         uses: actions/download-artifact@v4
         with:
-          name: taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
+          name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
           path: taverna-cmd/target/
 
       - name: Log in to Docker Hub
@@ -293,12 +297,13 @@ jobs:
           context: taverna-cmd
           file: taverna-cmd/src/main/container/Dockerfile
           push: true
-          tags: docker.io/chrisruffalo/taverna:${{ github.event.release.tag_name }}
-          build-args: INPUT_BINARY=taverna-cmd-${{ github.event.release.tag_name }}-linux-amd64
+          tags: docker.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
+          build-args: INPUT_BINARY=taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
 
       - name: Attest Docker Image
         uses: actions/attest-build-provenance@v2
         id: attest
+        if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
         with:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
@@ -357,7 +362,6 @@ jobs:
     permissions:
       contents: write
       id-token: write
-      attestations: write
     steps:
       - name: "Add Maven URLs to Release"
         uses: softprops/action-gh-release@v2
