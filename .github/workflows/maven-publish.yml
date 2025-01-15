@@ -295,7 +295,8 @@ jobs:
       id-token: write
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
-      image_attestation_url: ${{ steps.attestation.outputs.attestation-url }}
+      docker_attest_url: ${{ steps.attest_docker.outputs.attestation-url }}
+      quay_attest_url: ${{ steps.attest_quay.outputs.attestation-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -305,8 +306,11 @@ jobs:
           name: taverna-cmd-${{ needs.metadata.outputs.release_version }}-linux-amd64
           path: taverna-cmd/target/
 
+      # allows attestation to work from the build-push-action
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -328,7 +332,6 @@ jobs:
           context: taverna-cmd
           file: taverna-cmd/src/main/container/Dockerfile
           push: true
-          provenance: mode=max
           tags: | 
             docker.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
             quay.io/chrisruffalo/taverna:${{ needs.metadata.outputs.image_tag }}
@@ -340,7 +343,7 @@ jobs:
 
       - name: Attest Container Image @ Docker
         uses: actions/attest-build-provenance@v2
-        id: attest
+        id: attest_docker
         with:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
@@ -416,7 +419,8 @@ jobs:
             ## Attestations
             
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
-            [Binary Docker Image](${{ needs.container_image.outputs.image_attestation_url }})
+            [Docker Hub Image](${{ needs.container_image.outputs.docker_attest_url }})
+            [Quay Image](${{ needs.container_image.outputs.quay_attest_url }})
           append_body: true
 
       - name: "Add Maven URLs to Release"
@@ -442,4 +446,5 @@ jobs:
           body: |
             ## Container Image
             [Docker Hub](https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})
+            [Quay](https://quay.io/repository/chrisruffalo/taverna/manifest/${{ needs.container_image.outputs.image_digest }}?tab=layers)
           append_body: true
