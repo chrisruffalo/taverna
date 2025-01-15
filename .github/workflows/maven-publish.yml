@@ -169,7 +169,7 @@ jobs:
 
       - name: Build with Maven
         run: |
-          mvn -B --update-snapshots -Dbuild=cli -DskipTests -Drevision="${{ needs.metadata.outputs.release_version }}" -Dnative package
+          mvn -B --update-snapshots -Dbuild=cli -DskipTests -Dnative package
           mv taverna-cmd/target/taverna-cmd${{ matrix.target-suffix }} taverna-cmd/target/taverna-cmd-${{ needs.metadata.outputs.release_version }}-${{ matrix.native-asset-suffix }}
 
       - name: 'Upload Binary Executable'
