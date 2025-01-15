@@ -257,7 +257,7 @@ jobs:
   update_release:
     name: "Add Artifacts to Github Release"
     outputs:
-      artifact_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
+      artifact_attestation_url: ${{ steps.attestation.outputs.attestation-url }}
     runs-on: ubuntu-latest
 
     needs: [metadata, manage_release, build, build_native]
@@ -310,7 +310,7 @@ jobs:
       id-token: write
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
-      image_attestation_url: ${{ steps.attestation.outputs.bundle-attestation-url }}
+      image_attestation_url: ${{ steps.attestation.outputs.attestation-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -404,7 +404,8 @@ jobs:
           name: ${{ needs.metadata.outputs.release_name }}
           tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
-            ##Attestations:
+            ## Attestations
+            
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
             [Binary Docker Image](${{ needs.container_image.outputs.image_attestation_url }})
           append_body: true
@@ -415,12 +416,13 @@ jobs:
           name: ${{ needs.metadata.outputs.release_name }}
           tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
-            ##Maven Artifacts:
-            |module|url|
-            |------|---|
-            |taverna|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview|
-            |taverna cmd|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview|
-            |taverna maven plugin|https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview|
+            ## Maven Artifacts
+            
+            |module|group|artifactId|version|
+            |------|-----|----------|-------|
+            |[taverna](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna|${{ needs.metadata.outputs.release_version }}|
+            |[taverna cmd](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-cmd/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-cmd|${{ needs.metadata.outputs.release_version }}|
+            |[taverna maven plugin](https://central.sonatype.com/artifact/io.github.chrisruffalo/taverna-maven-plugin/${{ needs.metadata.outputs.release_version }}/overview)|io.github.chrisruffalo|taverna-maven-plugin|${{ needs.metadata.outputs.release_version }}|
           append_body: true
 
       - name: "Add Docker URL to Release"
@@ -429,6 +431,6 @@ jobs:
           name: ${{ needs.metadata.outputs.release_name }}
           tag_name: ${{ needs.metadata.outputs.release_tag }}
           body: |
-            ##Docker Image:
-            https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }}
+            ## Container Image
+            [Docker Hub](https://hub.docker.com/layers/chrisruffalo/taverna/${{ needs.metadata.outputs.image_tag }}/images/${{ needs.container_image.outputs.image_digest }})
           append_body: true
