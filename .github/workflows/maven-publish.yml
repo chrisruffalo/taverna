@@ -19,7 +19,7 @@ jobs:
           RELEASE=$(echo "${{ github.ref }}" | cut -d- -f2 )
           echo "image_tag=${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "release_version=${RELEASE}-SNAPSHOT" >> "$GITHUB_OUTPUT"
-          echo "release_name=Prelease ${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "release_name=Prerelease ${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "release_tag=pre-${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "prerelease=true" >> "$GITHUB_OUTPUT"
 
