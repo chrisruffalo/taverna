@@ -10,8 +10,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
+
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     @Override
     public Result<List<Cert>> load(DomainLoaderConfig configuration) {
@@ -40,9 +43,29 @@ public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
             };
             sslContext.init(null, new TrustManager[] { tm }, null);
 
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            final Callable<Result<List<Cert>>> certResultCallable = getResultCallable(domain, port, sslContext);
 
+            final Future<Result<List<Cert>>> future = EXECUTOR.submit(certResultCallable);
+
+            // todo: make this timeout configurable
+            final Result<List<Cert>> result = future.get(2, TimeUnit.SECONDS);
+            if (result.isError()) {
+                throw result.error();
+            }
+            return result.getOrFailsafe(List.of());
+        });
+    }
+
+    private static Callable<Result<List<Cert>>> getResultCallable(String domain, int port, SSLContext sslContext) {
+        final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+        final SSLParameters parameters = new SSLParameters();
+
+        return () -> Result.from(() -> {
             try (final SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(domain, port)) {
+                // set up ssl output from configuration
+                sslSocket.setUseClientMode(true);
+                sslSocket.setSSLParameters(parameters);
+
                 // begin the handshake
                 sslSocket.startHandshake();
 

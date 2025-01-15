@@ -31,4 +31,14 @@ class DomainLoaderTest {
         Assertions.assertTrue(certs.isError());
     }
 
+    @Test
+    void badPort() {
+        DomainLoaderConfig domainLoaderConfig = new DomainLoaderConfig("google.com", 1443);
+        DomainLoader loader = new DomainLoader();
+
+        final Result<List<Cert>> certs = loader.load(domainLoaderConfig);
+        Assertions.assertTrue(certs.isEmpty());
+        Assertions.assertTrue(certs.isError());
+    }
+
 }
