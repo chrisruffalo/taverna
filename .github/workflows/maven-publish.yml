@@ -351,6 +351,8 @@ jobs:
         run: mvn -B versions:set -DnewVersion="${{ needs.metadata.outputs.release_version }}"
 
       - name: Publish to Maven Central
+        # until snapshot publishing is fixed, just skip it
+        if: "!contains(needs.metadata.outputs.release_version, '-SNAPSHOT')"
         run: mvn -B -DpreparePublish -DpublishCentral -DskipTests clean deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
