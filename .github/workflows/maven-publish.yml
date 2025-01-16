@@ -333,7 +333,8 @@ jobs:
         with:
           subject-name: docker.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          # pushes layers to registry that the registry does not understand
+          push-to-registry: false
 
       - name: Attest Container Image @ Quay
         uses: actions/attest-build-provenance@v2
@@ -341,7 +342,8 @@ jobs:
         with:
           subject-name: quay.io/chrisruffalo/taverna
           subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          # pushes layers to registry that the registry does not understand
+          push-to-registry: false
 
   release_to_central:
     name: "Release to Maven Central"
