@@ -422,6 +422,6 @@ jobs:
             ## Attestations
             
             [Artifacts](${{ needs.update_release.outputs.artifact_attestation_url }})
-            [Container @ Quay](https://github.com/${{ github.repository_owner }}/${{ github.repository }}/attestations/${{ needs.container_image.outputs.quay_attest_id }})
-            [Container @ Docker Hub](https://github.com/${{ github.repository_owner }}/${{ github.repository }}/attestations/${{ needs.container_image.outputs.docker_attest_id }})
+            [Container @ Quay](https://github.com/${{ github.repository }}/attestations/${{ needs.container_image.outputs.quay_attest_id }})
+            [Container @ Docker Hub](https://github.com/${{ github.repository }}/attestations/${{ needs.container_image.outputs.docker_attest_id }})
           append_body: true
