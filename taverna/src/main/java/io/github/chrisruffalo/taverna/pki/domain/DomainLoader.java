@@ -10,21 +10,15 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
 
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+
     @Override
-    public List<Cert> load(DomainLoaderConfig configuration) {
-
-        final String domain = configuration.domainName();
-        final int port = configuration.port();
-
-        final Result<List<Cert>> serverCertsResult = loadCert(domain, port);
-        if (serverCertsResult.isEmpty()) {
-            return List.of();
-        }
-
-        return serverCertsResult.get();
+    public Result<List<Cert>> load(DomainLoaderConfig configuration) {
+        return loadCert(configuration.getDomainName(), configuration.getDomainPort());
     }
 
     private Result<List<Cert>> loadCert(String domain, int port) {
@@ -45,9 +39,29 @@ public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
             };
             sslContext.init(null, new TrustManager[] { tm }, null);
 
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            final Callable<Result<List<Cert>>> certResultCallable = getResultCallable(domain, port, sslContext);
 
+            final Future<Result<List<Cert>>> future = EXECUTOR.submit(certResultCallable);
+
+            // todo: make this timeout configurable
+            final Result<List<Cert>> result = future.get(2, TimeUnit.SECONDS);
+            if (result.isError()) {
+                throw result.error();
+            }
+            return result.getOrFailsafe(List.of());
+        });
+    }
+
+    private static Callable<Result<List<Cert>>> getResultCallable(String domain, int port, SSLContext sslContext) {
+        final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+        final SSLParameters parameters = new SSLParameters();
+
+        return () -> Result.from(() -> {
             try (final SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(domain, port)) {
+                // set up ssl output from configuration
+                sslSocket.setUseClientMode(true);
+                sslSocket.setSSLParameters(parameters);
+
                 // begin the handshake
                 sslSocket.startHandshake();
 
@@ -59,10 +73,7 @@ public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
                         .map(X509Certificate.class::cast)
                         .map(Cert::fromX509)
                         .toList();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
             }
-            return List.of();
         });
     }
 }

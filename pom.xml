@@ -33,14 +33,8 @@
         </license>
     </licenses>
 
-    <modules>
-        <module>taverna</module>
-        <module>taverna-cmd</module>
-        <module>taverna-maven-plugin</module>
-    </modules>
-
     <properties>
-        <revision>1.3-SNAPSHOT</revision>
+        <revision>1.4-SNAPSHOT</revision>
 
         <!-- maven/build options -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,6 +42,7 @@
         <!-- dependency versions -->
         <version.jcommander>2.0</version.jcommander>
         <version.resultify>1.0</version.resultify>
+        <version.quarkus>3.17.6</version.quarkus>
 
         <version.maven-plugin-tools>3.13.1</version.maven-plugin-tools>
         <version.maven-plugin-api>3.0</version.maven-plugin-api>
@@ -61,7 +56,7 @@
         <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
         <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
-        <version.central-publishing-maven-plugin>0.6.0</version.central-publishing-maven-plugin>
+        <version.central-publishing-maven-plugin>0.7.0</version.central-publishing-maven-plugin>
     </properties>
 
 
@@ -256,6 +251,66 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>taverna</module>
+                <module>taverna-cmd</module>
+                <module>taverna-maven-plugin</module>
+                <module>taverna-operator</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>cli</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>build</name>
+                    <value>cli</value>
+                </property>
+            </activation>
+            <modules>
+                <module>taverna</module>
+                <module>taverna-cmd</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>publishable</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>build</name>
+                    <value>publishable</value>
+                </property>
+            </activation>
+            <modules>
+                <module>taverna</module>
+                <module>taverna-cmd</module>
+                <module>taverna-maven-plugin</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>operator</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>build</name>
+                    <value>operator</value>
+                </property>
+            </activation>
+            <modules>
+                <module>taverna</module>
+                <module>taverna-operator</module>
+            </modules>
+        </profile>
+
     </profiles>
 
 </project>

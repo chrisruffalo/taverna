@@ -5,7 +5,7 @@ In the most basic sense `taverna` allows inspection of the trust chain of a sing
 command _can_ (and probably also should) do this the view taverna provides is a little more succinct.
 ```shell
 # view the trust of a single domain
-[]$ java -jar taverna.jar -d google.com
+[]$ java -jar taverna-cmd.jar -d google.com
 loaded 0 total certificates
 certificate chain from google.com:
         hostname verified
@@ -19,7 +19,7 @@ Also provided are the DNs (distinguished names) of the certificate and the issue
 
 Multiple domains can be specified. A port can be specified by appending ":\<port\>" to the domain name.
 ```shell
-[]$ java -jar taverna.jar -d google.com -d amazon.com:443
+[]$ java -jar taverna-cmd.jar -d google.com -d amazon.com:443
 loaded 0 total certificates
 certificate chain from google.com:
         hostname verified
@@ -45,7 +45,7 @@ to be added. A trust source can be a PEM or DER encoded single certificate file,
 directory tree, or a Java truststore.
 ```shell
 # check the trust of a domain against a trust source
-[]$ java -jar taverna.jar -s google-r1.pem -d google.com
+[]$ java -jar taverna-cmd.jar -s google-r1.pem -d google.com
 loaded 1 certificates from file google-r1.pem
         [serial=203e5936f31b01349886ba217] CN=GTS Root R1,O=Google Trust Services LLC,C=US [d947432abde7b7fa90fc2e6b59101b1280e0e1c7e4e40fa3c6887fff57a7f4cf] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 total certificates
@@ -64,7 +64,7 @@ and that it is _different_ from the cross-signed certificate in the certificate 
 This same command can be run against the subordinate certificate from Google.
 ```shell
 # check trust using subordinate certificate
-[]$ java -jar taverna.jar -s google-wr2.pem -d google.com
+[]$ java -jar taverna-cmd.jar -s google-wr2.pem -d google.com
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 total certificates
@@ -81,7 +81,7 @@ Note that the trust is anchored bny a different certificate (CN=WR2) in this cas
 
 The trust for multiple domains can be checked as well based on a single trust configuration.
 ```shell
-[]$ java -jar taverna.jar -s google-wr2.pem -d google.com -d amazon.com
+[]$ java -jar taverna-cmd.jar -s google-wr2.pem -d google.com -d amazon.com
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 total certificates
@@ -119,7 +119,7 @@ most options with strong defaults (opinions).
 In the simplest scenario the certificate chosen for the domain google.com is verified and written to the trust store.
 The default trust store password of 'changeit' will be used unless one is specified.
 ```shell
-[]$ java -jar taverna.jar -s google-wr2.pem -d google.com -outstore trust.p12 -outstorepass "n3wtRust!"
+[]$ java -jar taverna-cmd.jar -s google-wr2.pem -d google.com -outstore trust.p12 -outstorepass "n3wtRust!"
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 total certificates
@@ -136,7 +136,7 @@ wrote trust store to 'trust.p12'
 
 If **any** of the domains specified fail validation then no output files will be written.
 ```shell
-[]$ java -jar taverna.jar -s google-wr2.pem -d google.com -d amazon.com --outstore trust.p12 --outstorepass "n3wtRust!"
+[]$ java -jar taverna-cmd.jar -s google-wr2.pem -d google.com -d amazon.com --outstore trust.p12 --outstorepass "n3wtRust!"
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 total certificates
@@ -161,7 +161,7 @@ The `taverna` command can also simplify trust. While this is always a rough gues
 the first certificate (least trusted) that is found for a given domain. This makes the most restrictive
 trust output from the given input which minimizes the chance of trusting unintended domains.
 ```shell
-[]$ java -jar taverna.jar -s google-wr2.pem -s google-r1.pem -s globalsign.pem -d google.com --outstore trust.p12 --outstorepass "n3wtRust!"
+[]$ java -jar taverna-cmd.jar -s google-wr2.pem -s google-r1.pem -s globalsign.pem -d google.com --outstore trust.p12 --outstorepass "n3wtRust!"
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 certificates from file google-r1.pem
@@ -186,7 +186,7 @@ be used to trust the chain of certificates returned by the target domain.
 This command is more useful if you have an entire pile of certificates that you want to load and just let `taverna`
 sort it out.
 ```shell
-[]$ java -jar taverna.jar -s pki -d google.com -d amazon.com --outstore trust.p12 --outstorepass "n3wtRust!"
+[]$ java -jar taverna-cmd.jar -s pki -d google.com -d amazon.com --outstore trust.p12 --outstorepass "n3wtRust!"
 loaded 17 certificates from directory src/test/resources/pem
         [serial=203e5aec58d04251aab1125aa] CN=GTS Root R2,O=Google Trust Services LLC,C=US [8d25cd97229dbf70356bda4eb3cc734031e24cf00fafcfd32dc76eb5841c7ea8] [issuer=CN=GTS Root R2,O=Google Trust Services LLC,C=US]
         [serial=203e57ef53f93fda50921b2a6] CN=GlobalSign,O=GlobalSign,OU=GlobalSign ECC Root CA - R4 [b085d70b964f191a73e4af0d54ae7a0e07aafdaf9b71dd0862138ab7325a24a2] [issuer=CN=GlobalSign,O=GlobalSign,OU=GlobalSign ECC Root CA - R4]
@@ -230,7 +230,7 @@ wrote trust store to 'trust.p12'
 Given the fairly broad start that was specified a final output trust with 2 entries is  chosen. This will better tailor
 the trust to the environment. The trust can also be verified with the same store.
 ```shell
-[]$ java -jar taverna.jar -s "trust.p12:n3wtRust!" -d google.com -d amazon.com
+[]$ java -jar taverna-cmd.jar -s "trust.p12:n3wtRust!" -d google.com -d amazon.com
 loaded 2 certificates from truststore trust.p12
         [serial=250ce8e030612e9f2b89f7054d7cf8fd] CN=VeriSign Class 3 Public Primary Certification Authority - G5,OU=(c) 2006 VeriSign\, Inc. - For authorized use only,OU=VeriSign Trust Network,O=VeriSign\, Inc.,C=US [8420dfbe376f414bf4c0a81e6936d24ccc03f304835b86c7a39142fca723a689] [issuer=OU=Class 3 Public Primary Certification Authority,O=VeriSign\, Inc.,C=US]
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
@@ -257,7 +257,7 @@ certificate chain from amazon.com:
 Perhaps the most dangerous (read: useful) feature offered by `taverna` is the "completion" option which attempts to "complete" the
 trust chain automatically, closing gaps in the trust sources.
 ```shell
-[]$ java -jar taverna.jar -d google.com --complete
+[]$ java -jar taverna-cmd.jar -d google.com --complete
 loaded 0 total certificates
 certificate chain from google.com:
         hostname verified
@@ -273,7 +273,7 @@ first certificate beyond the domain's specific certificate.
 
 Another mode is "DIRECT" meaning that the domain certificate itself will be added.
 ```shell
-[]$ java -jar taverna.jar -d google.com --complete --completion-mode DIRECT
+[]$ java -jar taverna-cmd.jar -d google.com --complete --completion-mode DIRECT
 loaded 0 total certificates
 certificate chain from google.com:
         hostname verified
@@ -287,7 +287,7 @@ certificate chain from google.com:
 
 The final mode is "MOST_TRUSTED" which will add the deepest certificate (closest to the anchor) provided by the service.
 ```shell
-[]$ java -jar taverna.jar -d google.com --complete --completion-mode MOST_TRUSTED
+[]$ java -jar taverna-cmd.jar -d google.com --complete --completion-mode MOST_TRUSTED
 loaded 0 total certificates
 certificate chain from google.com:
         hostname verified
@@ -301,7 +301,7 @@ certificate chain from google.com:
 
 The completion option can be combined with other options to produce the output trust material.
 ```shell
-[]$ java -jar taverna.jar -d mail.google.com -d calendar.google.com -d drive.google.com --simplify --complete --outstore google.p12 --outstorepass "google"
+[]$ java -jar taverna-cmd.jar -d mail.google.com -d calendar.google.com -d drive.google.com --simplify --complete --outstore google.p12 --outstorepass "google"
 loaded 0 total certificates
 certificate chain from mail.google.com:
         hostname verified
@@ -340,7 +340,7 @@ with individual trust sources.
 To inspect a single or multiple trust sources a command can be run in "no domain" mode with the flag "--no-domains"
 which tells the command that it can ignore the error that normally happens when no domains are specified.
 ```shell
-[]$ java -jar taverna.jar -s google-r1.pem -s google-wr2.pem --no-domains
+[]$ java -jar taverna-cmd.jar -s google-r1.pem -s google-wr2.pem --no-domains
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 certificates from file google-r1.pem
@@ -351,7 +351,7 @@ loaded 2 total certificates
 While the "--simplify" option will not work in this mode (because there are no domains to check against) the tool
 can still be used to import/export and manage trust.
 ```shell
-[]$ java -jar taverna.jar -s google-r1.pem -s google-wr2.pem --no-domains --outdir pki/google --outfile google-all.pem --outstore google.p12 --outstorepass "google"
+[]$ java -jar taverna-cmd.jar -s google-r1.pem -s google-wr2.pem --no-domains --outdir pki/google --outfile google-all.pem --outstore google.p12 --outstorepass "google"
 loaded 1 certificates from file google-wr2.pem
         [serial=7ff005a07c4cded100ad9d66a5107b98] CN=WR2,O=Google Trust Services,C=US [e6fe22bf45e4f0d3b85c59e02c0f495418e1eb8d3210f788d48cd5e1cb547cd4] [issuer=CN=GTS Root R1,O=Google Trust Services LLC,C=US]
 loaded 1 certificates from file google-r1.pem

@@ -13,7 +13,7 @@ public class CliOptions implements Options {
     @Parameter(names = {"-d", "--domain"}, arity = 1, description = "A domain that the application needs to trust. A single domain can be a fqdn or fqdn:port. If no port is provided 443 is assumed. (This option may be specified multiple times.)")
     private List<String> domains = new ArrayList<>(0);
 
-    @Parameter(names = {"-D", "--domains"}, arity = 1, description = "A file that contains a list of domains that the application needs to trust. A single domain can be a fqdn or fqdn:port. If no port is provided 443 is assumed. (This option may be specified multiple times.)")
+    @Parameter(names = {"-D", "--domains"}, arity = 1, description = "A file that contains a list of domains that the application needs to trust. A single domain can be a fqdn or fqdn:port. If no port is provided 443 is assumed. A domain may also be expressed as a uri with a leading scheme like \"https://google.com\". (This option may be specified multiple times.)")
     private List<Path> domainFiles = new ArrayList<>(0);
 
     @Parameter(names = {"-s", "--source"}, arity = 1, description = "A source of trust material. Can be a directory, a file, or a Java trust store. If the source is a Java trust store with a password you may provide it by appending \":password\" to the source or by using the \"--storepass\" option. (This option may be specified multiple times.)")
@@ -26,10 +26,10 @@ public class CliOptions implements Options {
     private Path outstore;
 
     @Parameter(names = {"-T", "--outstoretype"}, defaultValueDescription = "The default value is '" + Options.DEFAULT_STORE_TYPE + "'.", description = "Specifies the format of the output keystore.")
-    private String outstoreType;
+    private String outstoreType = Options.DEFAULT_STORE_TYPE;
 
     @Parameter(names = {"-P", "--outstorepass"}, defaultValueDescription = "The default value is '" + Options.DEFAULT_STORE_PASSWORD + "'.", description = "The password for the output keystore.")
-    private String outStorePass = DEFAULT_STORE_PASSWORD;
+    private String outStorePass = Options.DEFAULT_STORE_PASSWORD;
 
     @Parameter(names = {"-F", "--outfile"}, description = "If specified the current trust profile will be written to a single PEM encoded file.")
     private Path outfile;

@@ -3,6 +3,17 @@ Taverna gets its name from the phrase "_**T**rust **A**nd **V**erify_". It is a 
 current trust material against the domains to trust and ensuring that the trust chain is correct before
 finding out the hard way (in production, at night, while on PTO).
 
+## Elevator Pitch
+Want to inspect your current trust against given domains and even fix the trust?
+```shell
+# loads the trust source (-s trustStore.p12) and checks if the domains (-d google.com and -d cloudflare.com)
+# are trusted. if they are not, the trust store is "--completed" by adding certificates for those domains
+# and then the new trust store is written to the output store (--outstore newTrust.p12) with the password
+# "newtrustpass" (--outstorepass "newtrustpass")
+[]$ java -jar taverna-cmd.jar -s trustStore.p12 -d google.com -d cloudflare.com --complete --outstore newTrust.p12 --outstorepass "newtrustpass"
+```
+There are more examples [in the documentation](docs/EXAMPLES.md).
+
 ## Problem
 Taverna comes from having to deliver immutable applications to various environments (production and non-production) that
 have different trust profiles. There are a lot of ways to handle this mechanically but that won't stop
@@ -44,13 +55,13 @@ The output native binaries for the CLI application would be in `taverna-cmd/targ
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
 execute `taverna` download the appropriate executable for the target platform and execute it as a command. For
 conformity this documentation uses the executable JAR but every binary accepts the same inputs
-and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
-presented as `taverna.jar` for succinctness.
+and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-cmd-executable.jar` and is
+presented as `taverna-cmd.jar` for succinctness.
 
 A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands the chosen container runtime.
 ```shell
-[]$ podman run docker.io/chrisruffalo/taverna:1.2 --version
-taverna - 1.2
+[]$ podman run docker.io/chrisruffalo/taverna:1.4 --version
+taverna - 1.4
 ```
 Checksums for each build are also provided by the build system. For more information about verifying the software 
 provenance read the [build verification documentation](docs/BUILD_VERIFICATION.md).

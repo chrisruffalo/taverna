@@ -1,5 +1,6 @@
 package io.github.chrisruffalo.taverna.pki.file;
 
+import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.model.Cert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,10 @@ class FileLoaderTest {
 
         final FileLoader loader = new FileLoader();
 
-        final List<Cert> certs = loader.load(config);
+        final Result<List<Cert>> result = loader.load(config);
+        Assertions.assertFalse(result.isEmpty());
 
+        final List<Cert> certs = result.get();
         Assertions.assertFalse(certs.isEmpty());
     }
 
@@ -30,8 +33,10 @@ class FileLoaderTest {
 
         final FileLoader loader = new FileLoader();
 
-        final List<Cert> certs = loader.load(config);
+        final Result<List<Cert>> result = loader.load(config);
+        Assertions.assertFalse(result.isEmpty());
 
+        final List<Cert> certs = result.get();
         Assertions.assertFalse(certs.isEmpty());
         Assertions.assertEquals(5, certs.size());
     }

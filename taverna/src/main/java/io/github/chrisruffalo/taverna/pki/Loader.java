@@ -1,5 +1,6 @@
 package io.github.chrisruffalo.taverna.pki;
 
+import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.model.Cert;
 
 import java.util.List;
@@ -9,6 +10,6 @@ import java.util.List;
  */
 public interface Loader<CONF extends LoaderConfig> {
 
-    List<Cert> load(CONF configuration);
+    Result<List<Cert>> load(CONF configuration);
 
 }
