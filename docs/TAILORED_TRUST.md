@@ -14,7 +14,7 @@ artifact that is used to deploy the application to production.
 ```shell
 # verifies the domain auth0.com against the trust given (none) and completes the trust chain in a simple way,
 # writing the trust artifact(s) to project/trust as individual certificates in PEM format.  
-[]$ java -jar taverna.jar -d auth0.com --complete --outdir project/trust
+[]$ java -jar taverna-cmd.jar -d auth0.com --complete --outdir project/trust
 loaded 0 total certificates
 certificate chain from auth0.com:
         hostname verified
@@ -29,7 +29,7 @@ writing 1 certificates to project/trust
 
 The output of this command shows a single certificate that the application _could_ trust in order to be able to verify the domain `auth0.com`.
 ```shell
-[]$ java -jar taverna.jar -d auth0.com -s project/trust
+[]$ java -jar taverna-cmd.jar -d auth0.com -s project/trust
 loaded 1 certificates from directory project/trust
         [serial=b0573e9173972770dbb487cb3a452b38] CN=E6,O=Let's Encrypt,C=US [76e9e288aafc0e37f4390cbf946aad997d5c1c901b3ce513d3d8fadbabe2ab85] [issuer=CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 loaded 1 total certificates
@@ -48,7 +48,7 @@ domain.
 Taverna can also be used at runtime or deployment time to verify that the trust the application is going to load is sufficient. A startup
 script can be modified to check the trust and stop the application from starting if it is insufficient.
 ```bash
-java -jar taverna.jar -d auth0.com -s not-enough.p12
+java -jar taverna-cmd.jar -d auth0.com -s not-enough.p12
 EXIT_CODE=$?
 if [[ "x0" != "x${EXIT_CODE}" ]]; then
   echo "certificates for auth0 could not be verified with the given trust store"
@@ -57,7 +57,7 @@ fi
 ```
 You could also set it up in reverse to make sure you can't connect to where you don't want to connect.
 ```bash
-java -jar taverna.jar -d internal.idp.corp -s overly_broad.p12
+java -jar taverna-cmd.jar -d internal.idp.corp -s overly_broad.p12
 EXIT_CODE=$?
 if [[ "x0" == "x${EXIT_CODE}" ]]; then
   echo "this service should not be able to trust the internal IDP, exiting"

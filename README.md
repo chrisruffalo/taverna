@@ -55,13 +55,13 @@ The output native binaries for the CLI application would be in `taverna-cmd/targ
 Each release of `taverna` provides an executable Java JAR file and binaries for windows, linux, and macOS (arm64). To
 execute `taverna` download the appropriate executable for the target platform and execute it as a command. For
 conformity this documentation uses the executable JAR but every binary accepts the same inputs
-and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-executable.jar` and is
-presented as `taverna.jar` for succinctness.
+and works the same way. The artifact name for the Java JAR will be `taverna-${release version}-cmd-executable.jar` and is
+presented as `taverna-cmd.jar` for succinctness.
 
 A container image is also provided at `https://hub.docker.com/r/chrisruffalo/taverna` and can be run similarly to the executable commands the chosen container runtime.
 ```shell
-[]$ podman run docker.io/chrisruffalo/taverna:1.2 --version
-taverna - 1.2
+[]$ podman run docker.io/chrisruffalo/taverna:1.4 --version
+taverna - 1.4
 ```
 Checksums for each build are also provided by the build system. For more information about verifying the software 
 provenance read the [build verification documentation](docs/BUILD_VERIFICATION.md).
