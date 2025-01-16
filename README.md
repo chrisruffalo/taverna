@@ -3,6 +3,17 @@ Taverna gets its name from the phrase "_**T**rust **A**nd **V**erify_". It is a 
 current trust material against the domains to trust and ensuring that the trust chain is correct before
 finding out the hard way (in production, at night, while on PTO).
 
+## Elevator Pitch
+Want to inspect your current trust against given domains and even fix the trust?
+```shell
+# loads the trust source (-s trustStore.p12) and checks if the domains (-d google.com and -d cloudflare.com)
+# are trusted. if they are not, the trust store is "--completed" by adding certificates for those domains
+# and then the new trust store is written to the output store (--outstore newTrust.p12) with the password
+# "newtrustpass" (--outstorepass "newtrustpass")
+[]$ java -jar taverna-cmd.jar -s trustStore.p12 -d google.com -d cloudflare.com --complete --outstore newTrust.p12 --outstorepass "newtrustpass"
+```
+There are more examples [in the documentation](docs/EXAMPLES.md).
+
 ## Problem
 Taverna comes from having to deliver immutable applications to various environments (production and non-production) that
 have different trust profiles. There are a lot of ways to handle this mechanically but that won't stop
