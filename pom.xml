@@ -281,6 +281,22 @@
         </profile>
 
         <profile>
+            <id>publishable</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>build</name>
+                    <value>publishable</value>
+                </property>
+            </activation>
+            <modules>
+                <module>taverna</module>
+                <module>taverna-cmd</module>
+                <module>taverna-maven-plugin</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>operator</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
