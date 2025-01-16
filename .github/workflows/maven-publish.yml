@@ -288,8 +288,6 @@ jobs:
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
       docker_attest_id: ${{ steps.attest_docker.outputs.attestation-id }}
-      docker_attest_url: ${{ steps.attest_docker.outputs.attestation-url }}
-      quay_attest_url: ${{ steps.attest_quay.outputs.attestation-url }}
       quay_attest_id: ${{ steps.attest_quay.outputs.attestation-id }}
     steps:
       - uses: actions/checkout@v4
