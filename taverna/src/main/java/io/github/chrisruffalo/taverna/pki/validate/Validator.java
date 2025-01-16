@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Validator {
 
-    private static final int SSL_PORT = 443;
-
     public Result<ValidationStatus> validate(OutputLogger logger, Options options, List<String> domains, List<Cert> trust) {
          return Result.from(() -> {
 
@@ -47,25 +45,19 @@ public class Validator {
              final AtomicInteger updatedCode = new AtomicInteger(Codes.OK);
 
              domains.forEach(domain -> {
-                 String domainName = domain.toLowerCase();
-                 int domainPort = SSL_PORT;
-                 if (domain.contains(":")) {
-                     String[] split = domainName.split(":");
-                     domainName = split[0];
-                     domainPort = Result.of(split[1]).map(Integer::parseInt).getOrFailsafe(SSL_PORT);
-                 }
-                 final DomainLoaderConfig domainLoaderConfig = new DomainLoaderConfig(domainName, domainPort);
+                 final DomainLoaderConfig domainLoaderConfig = new DomainLoaderConfig(domain, Options.DEFAULT_SSL_PORT);
                  final Result<List<Cert>> fromDomainResult = domainLoader.load(domainLoaderConfig);
+                 final String domainName = domainLoaderConfig.getDomainName();
+                 final int domainPort = domainLoaderConfig.getDomainPort();
                  List<Cert> fromDomain = List.of();
-                 final String domainPortFormatted = domainPort != SSL_PORT ? String.format("[%d]", domainPort) : "";
                  if (fromDomainResult.isError()) {
-                     logger.errorf("could not get certificates from %s:%s:", domainName, domainPortFormatted);
+                     logger.errorf("could not get certificates from %s:%s:", domainName, domainPort);
                      final Exception error = fromDomainResult.error();
                      logger.errorf("\terror: %s", error.getMessage());
                  } else if (fromDomainResult.isEmpty()) {
                      logger.infof("no certificates loaded from %s:%s:");
                  } else {
-                     logger.infof("certificate chain from %s%s:", domainName, domainPortFormatted);
+                     logger.infof("certificate chain from %s%s:", domainName, domainPort);
                      fromDomain = fromDomainResult.get();
                      final Cert domainFirstCert = fromDomain.getFirst();
                      boolean hostnameVerified = HostnameVerifier.verifyHostname(domainName, domainFirstCert.getAlternateNames());

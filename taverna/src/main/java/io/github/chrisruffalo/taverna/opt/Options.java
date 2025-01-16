@@ -8,6 +8,8 @@ public interface Options {
 
     String DEFAULT_STORE_TYPE = "PKCS12";
 
+    int DEFAULT_SSL_PORT = 443;
+
     List<String> getDomains();
 
     List<Path> getDomainFiles();

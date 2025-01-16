@@ -18,11 +18,7 @@ public class DomainLoader extends BaseLoader<DomainLoaderConfig> {
 
     @Override
     public Result<List<Cert>> load(DomainLoaderConfig configuration) {
-
-        final String domain = configuration.domainName();
-        final int port = configuration.port();
-
-        return loadCert(domain, port);
+        return loadCert(configuration.getDomainName(), configuration.getDomainPort());
     }
 
     private Result<List<Cert>> loadCert(String domain, int port) {
