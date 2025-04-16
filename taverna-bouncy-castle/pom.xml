@@ -48,6 +48,12 @@
                                     <include>org.bouncycastle:bcprov-jdk18on</include>
                                 </includes>
                             </artifactSet>
+                            <transformers>
+                                <!-- don't include child manifests -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resource>MANIFEST.MF</resource>
+                                </transformer>
+                            </transformers>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -88,6 +94,12 @@
                                     <include>org.bouncycastle:bc-fips</include>
                                 </includes>
                             </artifactSet>
+                            <transformers>
+                                <!-- don't include child manifests -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resource>MANIFEST.MF</resource>
+                                </transformer>
+                            </transformers>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
