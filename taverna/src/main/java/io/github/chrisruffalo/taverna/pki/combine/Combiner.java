@@ -4,6 +4,7 @@ import io.github.chrisruffalo.resultify.Result;
 import io.github.chrisruffalo.taverna.model.Cert;
 
 import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.Collection;
 
 /**
@@ -15,30 +16,33 @@ public class Combiner {
 
     private static final String DEFAULT_TYPE = "PKCS12";
 
-    public static KeyStore combineTrust(Collection<Cert> certs) {
+    public static KeyStore combineTrust(KeyStore into, Collection<Cert> certs) {
         return Result.from(() -> {
-            final KeyStore keyStore = KeyStore.getInstance(DEFAULT_TYPE);
-            keyStore.load(null, null);
+                    into.load(null, null);
 
             for(Cert cert : certs) {
                 final String alias = cert.getSubject();
 
                 // check for alias in keystore
-                if (keyStore.containsAlias(alias)) {
+                if (into.containsAlias(alias)) {
                     continue;
                 }
 
                 // add certificate that doesn't exist
-                keyStore.setCertificateEntry(cert.getSubject(), cert.getOriginal());
+                into.setCertificateEntry(cert.getSubject(), cert.getOriginal());
             }
 
-            return keyStore;
+            return into;
         })
         .recover(e -> {
             System.out.println(e.getMessage());
             return null;
         })
         .getOrFailsafe(null);
+    }
+
+    public static KeyStore combineTrust(Collection<Cert> certs) {
+        return Result.from(() -> combineTrust(KeyStore.getInstance(DEFAULT_TYPE), certs)).getOrFailsafe(null);
     }
 
 }

@@ -43,9 +43,7 @@ public class Entrypoint {
 
         final Entrypoint entrypoint = new Entrypoint();
         final int code = entrypoint.run(cliOptions);
-        if (code != 0) {
-            System.exit(code);
-        }
+        System.exit(code);
     }
 
     public int run(final CliOptions cliOptions) {

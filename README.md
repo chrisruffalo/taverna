@@ -111,6 +111,22 @@ presented in the output. There are more examples [in the documentation](docs/EXA
 | `--help`            | `-h`    | If present the help message is printed and the process exits.                                                                                                                                                                                                                                                                                                                                                             |               |
 
 
+### Bouncy Castle
+This tool _does_ support the Bouncy Castle keystore formats "bks", "uber", and "bcfks" in the executable jar. The native executable cannot, as of yet, support these types. The execution is the same, for example converting one key store type
+(BCFKS or BKS) to another (PKCS12). This is useful for translating the types with a single command without worrying about setting up the classpath for `keytool`.
+
+```shell
+[]$ java -jar taverna.jar -s input.bcfks -o output.pkcs12
+loaded 2 certificates from truststore taverna/src/test/resources/stores/trust.bcfks
+        [serial=cabaad1cec4e97cc2665881d02138f7] CN=Apple Public EV Server ECC CA 1 - G1,O=Apple Inc.,C=US [2585928d2c5bfd952e025bd12e27c6776224cf752ec362d3031cdd49351844d4] [issuer=CN=DigiCert Global Root G3,OU=www.digicert.com,O=DigiCert Inc,C=US]
+        [serial=7ff32d6b409d15d5965b05873a7c72e0] CN=WE2,O=Google Trust Services,C=US [9c3f2fd11c57d7c649ad5a0932c0f0d29756f6a0a1c74c43e1e89a62d64cd320] [issuer=CN=GTS Root R4,O=Google Trust Services LLC,C=US]
+loaded 2 total certificates
+WARNING: the output store pass is the default password, this is insecure and it should be changed
+wrote trust store to 'output.pkcs12' (with 2 entries)
+```
+
+This support is highly experimental but might be helpful in some cases.
+
 ### Real World Use
 For more information about a real-world use-case for `taverna` and tailored trust see [the tailored trust documentation](docs/TAILORED_TRUST.md).
 

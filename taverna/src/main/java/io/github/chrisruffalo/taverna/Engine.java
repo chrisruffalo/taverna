@@ -5,8 +5,9 @@ import io.github.chrisruffalo.taverna.error.Codes;
 import io.github.chrisruffalo.taverna.log.OutputLogger;
 import io.github.chrisruffalo.taverna.model.Cert;
 import io.github.chrisruffalo.taverna.opt.Options;
-import io.github.chrisruffalo.taverna.pki.combine.Combiner;
 import io.github.chrisruffalo.taverna.pki.combine.CombinedLoader;
+import io.github.chrisruffalo.taverna.pki.combine.Combiner;
+import io.github.chrisruffalo.taverna.pki.store.TrustStoreLoader;
 import io.github.chrisruffalo.taverna.pki.validate.ValidationStatus;
 import io.github.chrisruffalo.taverna.pki.validate.Validator;
 
@@ -116,10 +117,14 @@ public class Engine {
                         if (Options.DEFAULT_STORE_PASSWORD.equals(outStorePass)) {
                             logger.infof("WARNING: the output store pass is the default password, this is insecure and it should be changed");
                         }
-                        final KeyStore finalKeyStore = Combiner.combineTrust(finalizedTrust);
-                        try (OutputStream os = Files.newOutputStream(outStorePath)) {
-                            finalKeyStore.store(os, outStorePass.toCharArray());
-                            logger.infof("wrote trust store to '%s'", outStorePath);
+                        try {
+                            final TrustStoreLoader loader = new TrustStoreLoader();
+                            final KeyStore finalKeyStore = loader.loadKeystore(outStorePath, options.getOutstoreType(), options.getOutStorePass()).getOrFailsafe(KeyStore.getInstance(Options.DEFAULT_STORE_TYPE));
+                            Combiner.combineTrust(finalKeyStore, finalizedTrust);
+                            try (OutputStream os = Files.newOutputStream(outStorePath)) {
+                                finalKeyStore.store(os, outStorePass.toCharArray());
+                                logger.infof("wrote trust store to '%s' (with %d entries)", outStorePath, finalKeyStore.size());
+                            }
                         } catch (Exception ex) {
                             logger.errorf("failed to create trust store at '%s': %s", outStorePath, ex.getMessage());
                         }

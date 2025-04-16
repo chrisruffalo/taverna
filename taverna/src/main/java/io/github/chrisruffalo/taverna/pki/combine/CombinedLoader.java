@@ -78,7 +78,7 @@ public class CombinedLoader {
                         Result<List<Cert>> keyStoreResult = trustStoreLoader.load(trustStoreLoaderConfig);
                         if (!keyStoreResult.isEmpty()) {
                             loaded.addAll(keyStoreResult.get());
-                            logger.infof("loaded %s certificates from truststore %s", loaded.size(), asPath);
+                            logger.infof("loaded %d certificates from truststore %s (type=%s)", loaded.size(), storeTypeName.toUpperCase(), asPath);
                             break;
                         }
                     }
