@@ -95,6 +95,9 @@ jobs:
       - name: Set release version
         run: mvn -B versions:set -DnewVersion="${{ needs.metadata.outputs.release_version }}"
 
+      - name: Prepare For Testing with Maven
+        run: mvn -B -Dbuild=test -DskipTests install
+
       - name: Test with Maven
         run: mvn -B test
 

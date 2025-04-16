@@ -321,6 +321,20 @@
         </profile>
 
         <profile>
+            <id>pre-test-build</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>build</name>
+                    <value>test</value>
+                </property>
+            </activation>
+            <modules>
+                <module>taverna-bouncy-castle</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>cli</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
