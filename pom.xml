@@ -13,6 +13,9 @@
     <description>Root project for related taverna modules</description>
 
     <url>https://github.com/chrisruffalo/taverna</url>
+    <modules>
+        <module>taverna-bouncy-castle</module>
+    </modules>
 
     <scm>
         <url>git@github.com:chrisruffalo/taverna.git</url>
@@ -34,7 +37,7 @@
     </licenses>
 
     <properties>
-        <revision>1.4-SNAPSHOT</revision>
+        <revision>1.5-SNAPSHOT</revision>
 
         <!-- maven/build options -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,6 +46,7 @@
         <version.jcommander>2.0</version.jcommander>
         <version.resultify>1.0</version.resultify>
         <version.quarkus>3.17.6</version.quarkus>
+        <version.graalvm>23.1.0</version.graalvm>
 
         <version.maven-plugin-tools>3.13.1</version.maven-plugin-tools>
         <version.maven-plugin-api>3.0</version.maven-plugin-api>
@@ -50,7 +54,7 @@
         <!-- plugin versions -->
         <version.surefire-plugin>3.5.2</version.surefire-plugin>
         <version.failsafe-plugin>${version.surefire-plugin}</version.failsafe-plugin>
-        <version.native-maven-plugin>0.10.4</version.native-maven-plugin>
+        <version.native-maven-plugin>0.10.6</version.native-maven-plugin>
         <version.maven-shade-plugin>3.6.0</version.maven-shade-plugin>
         <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
         <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
@@ -59,13 +63,24 @@
         <version.central-publishing-maven-plugin>0.7.0</version.central-publishing-maven-plugin>
     </properties>
 
-
     <dependencyManagement>
         <dependencies>
             <!-- internal dependencies -->
             <dependency>
                 <groupId>io.github.chrisruffalo</groupId>
                 <artifactId>taverna</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.chrisruffalo</groupId>
+                <artifactId>taverna-bouncy-castle</artifactId>
+                <classifier>bc-relocated</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.chrisruffalo</groupId>
+                <artifactId>taverna-bouncy-castle</artifactId>
+                <classifier>bcfips-unsigned</classifier>
                 <version>${project.version}</version>
             </dependency>
 
@@ -86,6 +101,18 @@
                 <artifactId>junit-jupiter</artifactId>
                 <version>5.11.4</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- bc versions -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.80</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bc-fips</artifactId>
+                <version>2.1.0</version>
             </dependency>
 
             <!-- maven api dependencies -->
@@ -118,7 +145,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${version.maven-compiler-plugin}</version>
                     <configuration>
-                        <release>21</release>
+                        <release>17</release>
+                        <source>21</source>
                     </configuration>
                 </plugin>
 
@@ -171,6 +199,32 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.5</version>
+                <configuration>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
     <profiles>
@@ -260,6 +314,7 @@
             <modules>
                 <module>taverna</module>
                 <module>taverna-cmd</module>
+                <module>taverna-bouncy-castle</module>
                 <module>taverna-maven-plugin</module>
                 <module>taverna-operator</module>
             </modules>
@@ -276,6 +331,7 @@
             </activation>
             <modules>
                 <module>taverna</module>
+                <module>taverna-bouncy-castle</module>
                 <module>taverna-cmd</module>
             </modules>
         </profile>
@@ -307,6 +363,7 @@
             </activation>
             <modules>
                 <module>taverna</module>
+                <module>taverna-bouncy-castle</module>
                 <module>taverna-operator</module>
             </modules>
         </profile>

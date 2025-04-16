@@ -7,6 +7,9 @@ public enum StoreType {
 
     JKS,
     PKCS12,
-    JCEKS
+    JCEKS,
+    BKS,
+    UBER,
+    BCFKS
 
 }

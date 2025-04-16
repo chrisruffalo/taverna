@@ -48,6 +48,42 @@
             <groupId>io.github.chrisruffalo</groupId>
             <artifactId>taverna</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.chrisruffalo</groupId>
+            <artifactId>taverna-bouncy-castle</artifactId>
+            <classifier>bc-relocated</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.github.chrisruffalo</groupId>
+            <artifactId>taverna-bouncy-castle</artifactId>
+            <classifier>bcfips-unsigned</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- native support -->
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>${version.graalvm}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>${version.graalvm}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -70,6 +106,13 @@
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>executable</shadedClassifierName>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.graalvm*:*</exclude>
+                                    <exclude>org.bouncycastle:*</exclude>
+                                    <exclude>io.github.chrisruffalo:taverna-bouncy-castle</exclude>
+                                </excludes>
+                            </artifactSet>
                             <transformers>
                                 <!-- handle service files, just in case -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -95,6 +138,17 @@
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>**/graalvm/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -125,6 +179,16 @@
                                     <goal>compile-no-fork</goal>
                                 </goals>
                                 <phase>package</phase>
+                                <configuration>
+                                    <buildArgs>
+<!--                                        <arg>&#45;&#45;initialize-at-run-time=org.nofipsbouncycastle.jce.provider.BouncyCastleProvider,org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider</arg>-->
+                                        <arg>--add-opens=java.base/java.security=ALL-UNNAMED</arg>
+                                        <arg>--features=io.github.chrisruffalo.taverna.cmd.graalvm.BCFeature</arg>
+                                        <arg>--verbose</arg>
+                                        <arg>--no-fallback</arg>
+                                        <arg>-g</arg>
+                                    </buildArgs>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

@@ -32,5 +32,10 @@
     "name":"io.github.chrisruffalo.taverna.opt.CompletionMode",
     "allDeclaredFields":true,
     "allDeclaredMethods":true
+  },
+  {
+    "name": "org.nofipsbouncycastle.jce.provider.BouncyCastleProvider",
+    "allDeclaredFields":true,
+    "allDeclaredMethods":true
   }
 ]

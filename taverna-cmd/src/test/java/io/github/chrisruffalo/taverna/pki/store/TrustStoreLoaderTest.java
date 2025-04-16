@@ -10,12 +10,17 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.List;
 
+/**
+ * This is a repeated test to ensure that the classloading
+ * works when using taverna dependency from another source
+ * (like in another project or in a shaded jar)
+ */
 class TrustStoreLoaderTest {
 
     @Test
     void load() {
         final TrustStoreLoaderConfig config = new TrustStoreLoaderConfig(
-            Paths.get("src/test/resources/stores/trust.jks"),
+            Paths.get("../taverna/src/test/resources/stores/trust.jks"),
             "jks",
             "changeit"
         );
@@ -32,7 +37,7 @@ class TrustStoreLoaderTest {
     @Test
     void loadPKCS12() {
         final TrustStoreLoaderConfig config = new TrustStoreLoaderConfig(
-            Paths.get("src/test/resources/stores/trust.p12"),
+            Paths.get("../taverna/src/test/resources/stores/trust.p12"),
             "pkcs12",
             "changeit"
         );
@@ -49,12 +54,12 @@ class TrustStoreLoaderTest {
     @Test
     void loadBKS() {
         final TrustStoreLoaderConfig config = new TrustStoreLoaderConfig(
-                Paths.get("src/test/resources/stores/trust.bks"),
+                Paths.get("../taverna/src/test/resources/stores/trust.bks"),
                 "bks",
                 "changeit"
         );
         final TrustStoreLoader loader = new TrustStoreLoader();
-        final KeyStore ks = loader.loadKeystore(config.path(), config.type(), config.password()).getOrFailsafe(null);
+        final KeyStore ks = loader.loadKeystore(config.path(), config.type(), config.password()).panicOrGet();
         Assertions.assertNotNull(ks);
 
         final Result<List<Cert>> certsResult =  loader.load(config);
@@ -68,7 +73,7 @@ class TrustStoreLoaderTest {
     @Test
     void loadBCFKS() {
         final TrustStoreLoaderConfig config = new TrustStoreLoaderConfig(
-                Paths.get("src/test/resources/stores/trust.bcfks"),
+                Paths.get("../taverna/src/test/resources/stores/trust.bcfks"),
                 "bcfks",
                 "changeit"
         );
