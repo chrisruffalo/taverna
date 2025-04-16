@@ -11,6 +11,29 @@
     </parent>
 
     <artifactId>taverna-bouncy-castle</artifactId>
+    <name>Taverna Bouncy Castle</name>
+    <description>Repackage BC for potential use with GraalVM</description>
+
+    <url>https://github.com/chrisruffalo/taverna</url>
+
+    <scm>
+        <url>git@github.com:chrisruffalo/taverna.git</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>chris.ruffalo</id>
+            <name>Chris Ruffalo</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
     </properties>
@@ -72,13 +95,6 @@
                             </relocations>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
                     <execution>
                         <id>bcfips-unsigned</id>
                         <phase>package</phase>
